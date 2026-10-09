@@ -1,0 +1,7 @@
+file,role,width,height,transparent,frame_width,frame_height,source,prompt_note,review_status
+reference/assets/scene-ambient.png,reference background,2172,724,no,,,Codex imagegen 2026-10-08,v1 practice scene; style reference only,reference
+reference/assets/scene.png,reference background with coworker,2172,724,no,,,Codex imagegen 2026-10-08,not loaded by reference/game.js,reference
+reference/assets/foreground.png,reference foreground railing,2172,724,yes,,,Codex imagegen 2026-10-08,candidate for reuse in assets/images/site/,reference
+reference/assets/worker.png,reference player sheet,1254,1254,yes,627,627,Codex imagegen 2026-10-08,2x2 cells; idle 1 + walk 3; foot contact unfinished,reference
+reference/assets/coworker.png,reference coworker,1254,1254,yes,,,Codex imagegen 2026-10-08,v2 needs new hatch pose; costume reference only,reference
+reference/assets/fan.png,reference decoration,1774,887,yes,,,Codex imagegen 2026-10-08,2 cells housing+blade; not used in v2,reference
