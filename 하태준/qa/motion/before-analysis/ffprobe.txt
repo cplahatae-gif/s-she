@@ -1,9 +1,0 @@
-Input #0, matroska,webm, from '하태준/qa/motion/before.webm':
-  Metadata:
-    creation_time   : 2026-10-09T04:04:54.483000Z
-    ENCODER         : Lavf61.1.100
-  Duration: 00:00:15.72, start: 0.000000, bitrate: 1277 kb/s
-  Stream #0:0(eng): Video: vp8, yuv420p(progressive), 1280x800, SAR 1:1 DAR 8:5, 25 fps, 25 tbr, 1k tbn (default)
-    Metadata:
-      ENCODER         : Lavc61.3.100 libvpx
-      DURATION        : 00:00:15.720000000

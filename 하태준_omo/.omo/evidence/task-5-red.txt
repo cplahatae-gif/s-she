@@ -1,5 +1,0 @@
-### Error
-TimeoutError: locator.focus: Timeout 30000ms exceeded.
-Call log:
-[2m  - waiting for getByRole('button', { name: '현장 탐색 시작', exact: true })[22m
-

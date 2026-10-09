@@ -1,5 +1,0 @@
-### Error
-TimeoutError: locator.waitFor: Timeout 5000ms exceeded.
-Call log:
-[2m  - waiting for getByRole('button', { name: '현장 탐색 시작', exact: true }) to be visible[22m
-
