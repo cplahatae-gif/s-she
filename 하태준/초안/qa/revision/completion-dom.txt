@@ -1,0 +1,78 @@
+- main:
+  - link "SAFEPLAY 처음으로":
+    - /url: ./index.html
+    - text: SAFE
+    - generic: PLAY
+    - generic: 마지막 자물쇠
+  - checkbox "움직임 줄이기"
+  - text: 움직임 줄이기
+  - button "공장 전경"
+  - generic "컨베이어 현장. 방향키 또는 A D로 이동, E로 가까운 대상 조사"
+  - button "왼쪽 이동" [disabled]: ←
+  - button "가까운 대상 조사" [disabled]: 컨베이어 이물질 제거 조사 [E]
+  - button "오른쪽 이동" [disabled]: →
+  - strong: 컨베이어 이물질 제거
+  - generic: 이물질 제거 작업 완료
+  - text: 선택
+  - strong: "6"
+  - text: 되감기
+  - strong: "0"
+  - paragraph: 작업 절차 · 6 / 6 완료
+  - list:
+    - generic: ✓
+    - text: 설비 정지
+    - generic: 완료
+    - generic: ✓
+    - text: 오퍼레이터 전달
+    - generic: 완료
+    - generic: ✓
+    - text: MCC 차단·개인 잠금
+    - generic: 완료
+    - generic: ✓
+    - text: 태그아웃
+    - generic: 완료
+    - generic: ✓
+    - text: 트라이아웃
+    - generic: 완료
+    - generic: ✓
+    - text: 이물질 제거
+    - generic: 완료
+  - generic: "현재 위치: 컨베이어 점검구"
+  - generic: ← → / A D 이동 E 현재 위치에서 행동 선택
+  - generic: 체험 초안 · 현장 절차 검토 전
+  - generic: 단계별 행동을 선택하고 현장의 변화와 설명을 확인하세요.
+  - status: "6. 이물질 제거: 컨베이어 점검구 가까이 이동하세요."
+- dialog "안전조치를 확인하고 이물질을 제거했습니다.":
+  - generic: 6단계 완료
+  - heading "안전조치를 확인하고 이물질을 제거했습니다." [level=2]:
+    - text: 안전조치를 확인하고
+    - text: 이물질을 제거했습니다.
+  - list:
+    - generic: ✓
+    - text: 설비 정지
+    - generic: 완료
+    - generic: ✓
+    - text: 오퍼레이터 전달
+    - generic: 완료
+    - generic: ✓
+    - text: MCC 차단·개인 잠금
+    - generic: 완료
+    - generic: ✓
+    - text: 태그아웃
+    - generic: 완료
+    - generic: ✓
+    - text: 트라이아웃
+    - generic: 완료
+    - generic: ✓
+    - text: 이물질 제거
+    - generic: 완료
+  - text: 행동 선택
+  - strong: "6"
+  - text: 되감기
+  - strong: "0"
+  - generic: 기본 설명
+  - paragraph: 설비를 정지하고 운전자에게 알린 뒤 MCC에서 에너지를 차단했습니다. 본인 자물쇠·표지를 체결하고 잔류 에너지를 처리한 뒤 시동 시험으로 차단을 확인하고 이물질을 제거했습니다. 현실에는 되감기가 없습니다.
+  - button "다시 연습" [active]
+  - button "공장 전경"
+- button "현재 탭을 시크릿 모드에서 열기":
+  - button "위젯 숨기기": ×
