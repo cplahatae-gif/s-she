@@ -1,16 +1,28 @@
 <!doctype html>
 <html lang="ko">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#171b1f">
-    <meta name="description" content="SAFEPLAY 마지막 자물쇠 — 레미콘 공장 전경과 벨트 컨베이어 작업 안내">
-    <title>공장 전경 · SAFEPLAY</title>
-    <link rel="stylesheet" href="./src/base.css">
-    <script type="module" src="./src/app.js"></script>
-  </head>
-  <body>
-    <div id="app"></div>
-    <noscript>공장 구역을 선택하려면 JavaScript를 켜 주세요.</noscript>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#172129">
+  <title>세이프 플레이 — 현장을 이해하는 첫걸음</title>
+  <link rel="stylesheet" href="./src/styles.css">
+  <script src="vendor/phaser.min.js" defer></script>
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header" aria-label="체험 설정">
+      <div class="brand" aria-label="세이프 플레이, 현장을 이해하는 첫걸음"><span class="brand-symbol" aria-hidden="true">SP</span><div><strong>세이프 플레이</strong><small>현장을 이해하는 첫걸음</small></div></div>
+      <div class="header-tools">
+        <label class="text-setting"><input id="large-text" type="checkbox"> 큰 글씨</label>
+        <label class="motion-setting"><input id="reduced-motion" type="checkbox"> 움직임 줄이기</label>
+        <button id="overview-button" class="quiet-button" type="button" hidden>공장 전경</button>
+      </div>
+    </header>
+    <div id="game-shell" class="game-shell"><div id="scene-root" class="scene-root"></div></div>
+    <p id="footer-context" class="sr-only" aria-live="polite">공장 전경에서 B/C 구역을 선택하세요.</p>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+  </main>
+  <dialog id="game-dialog" aria-labelledby="dialog-title"><div id="dialog-content"></div></dialog>
+</body>
 </html>

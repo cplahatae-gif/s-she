@@ -1,0 +1,5 @@
+logs/
+.omo/
+.playwright-mcp/
+.env
+.env.*

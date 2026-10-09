@@ -1,0 +1,52 @@
+{
+  "schema": "safeplay.learning-record",
+  "version": 1,
+  "scenarioId": "bc-loto-01",
+  "analysisSource": "rules",
+  "metrics": {
+    "attempts": 8,
+    "rewinds": 1,
+    "firstPassCorrect": 5,
+    "correctedSteps": 1
+  },
+  "events": [
+    {
+      "optionId": "stop-emergency-only"
+    },
+    {
+      "optionId": "stop-enter-running"
+    },
+    {
+      "optionId": "stop-correct"
+    },
+    {
+      "optionId": "notify-correct"
+    },
+    {
+      "optionId": "lock-correct"
+    },
+    {
+      "optionId": "tag-correct"
+    },
+    {
+      "optionId": "tryout-correct"
+    },
+    {
+      "optionId": "cleanup-correct"
+    }
+  ],
+  "observedStrengthStepIds": [
+    "notify",
+    "personal-lock",
+    "tagout",
+    "tryout",
+    "cleanup"
+  ],
+  "observedWeaknessStepIds": [
+    "stop"
+  ],
+  "courseIds": [
+    "energy-basics"
+  ],
+  "limitation": "이번 실습의 선택 기록만으로 학습 의지·성격·동기를 판단할 수 없습니다. 다른 상황의 수행과 대화가 추가로 필요합니다."
+}
