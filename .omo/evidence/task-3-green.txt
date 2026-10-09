@@ -1,0 +1,22 @@
+﻿✔ S01 investigations are immutable and repeat observations have no safety effect (1.5839ms)
+✔ S02 malformed identifiers reject without mutation, including after completion (0.4812ms)
+✔ S03 malformed identifiers reject without mutation, including after completion (0.2984ms)
+✔ S04 unavailable prerequisites block without mutation (0.2172ms)
+✔ S05 real safety changes invalidate verification; repeated values preserve it (0.1519ms)
+✔ S06 tags preserve passed and failed verification (0.1261ms)
+✔ S07 verification checks every prerequisite, not tags, and never adds attempts (0.1908ms)
+✔ S08 missing isolation outranks failed verification and increments once per entry (0.1005ms)
+✔ S09 absent and wrong locks outrank failed verification (0.1482ms)
+✔ S10 recorded verification failure outranks missing tag and residual energy (0.1292ms)
+✔ S11 each remaining omission is incomplete without accident effects (0.1001ms)
+✔ S12 success completes once; every completed operation blocks unchanged (0.2435ms)
+✔ S13 rewind changes only its counter and observation preserves verification (0.1028ms)
+✔ S14 new runs have independent references and exact initial fields (0.1135ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 112.6687

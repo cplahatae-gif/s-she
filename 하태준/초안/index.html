@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#171719">
+  <title>마지막 자물쇠: 컨베이어 6단계 체험</title>
+  <link rel="stylesheet" href="./src/styles.css">
+  <link rel="stylesheet" href="./src/actions.css">
+  <script src="../../vendor/phaser.min.js" defer></script>
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="./index.html" aria-label="SAFEPLAY 처음으로">SAFE<span>PLAY</span><small>마지막 자물쇠</small></a>
+      <div class="header-tools">
+        <div class="theme-switch" role="group" aria-label="디자인 비교"><button type="button" data-theme-choice="dark" aria-pressed="true">추천 다크</button><button type="button" data-theme-choice="light" aria-pressed="false">라이트</button><button type="button" data-theme-choice="original" aria-pressed="false">기존</button></div>
+        <label class="motion-setting"><input id="reduced-motion" type="checkbox"> 움직임 줄이기</label>
+        <button id="overview-button" class="quiet-button" type="button" hidden>공장 전경</button>
+      </div>
+    </header>
+    <div id="game-shell" class="game-shell"><div id="scene-root" class="scene-root"></div></div>
+    <footer class="app-footer"><span>체험 초안 · 현장 절차 검토 전</span><span id="footer-context">공장 전경에서 B/C 구역을 선택하세요.</span></footer>
+    <p id="announcement" class="sr-only" role="status" aria-live="polite"></p>
+  </main>
+  <dialog id="game-dialog" aria-labelledby="dialog-title"><div class="dialog-theme-bar"><div class="theme-switch" role="group" aria-label="디자인 비교"><button type="button" data-theme-choice="dark" aria-pressed="true">추천 다크</button><button type="button" data-theme-choice="light" aria-pressed="false">라이트</button><button type="button" data-theme-choice="original" aria-pressed="false">기존</button></div></div><div id="dialog-content"></div></dialog>
+</body>
+</html>
