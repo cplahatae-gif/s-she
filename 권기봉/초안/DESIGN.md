@@ -6,7 +6,7 @@
 
 ## 독립 함수 계약
 
-기존 `docs/contract.md`는 운전원 판정용 계약으로 남아 있다. 이 초안은 그 계약을 바꿨다고 간주하지 않으며 `control`, `lock`, `worker`, `remove`, `notify`, `hold`, `start`를 새 뜻으로 재사용하지 않는다. 실제 루트 통합은 담당자 합의 뒤 제공 함수·호출부·검사를 함께 변경한다.
+작업 시작 시 참조한 `docs/contract.md`는 운전원 판정용 계약이었다. 이후 원격 `main`의 `af2f465`가 `docs/contract.md`와 `docs/결정사항.md`를 삭제했고, 이 통합에서 해당 원격 변경을 보존했다. 아래는 그 삭제와 별개로 이 초안의 독립 계약이다. `control`, `lock`, `worker`, `remove`, `notify`, `hold`, `start`를 새 뜻으로 재사용하지 않으며, 루트 `AGENTS.md`의 운전원용 지침은 이번 초안 작업에서 수정하지 않았다. 실제 루트 구현에 통합하려면 담당자 합의 뒤 제공 함수·호출부·검사를 함께 변경한다.
 
 `src/scenario.mjs`는 DOM·Phaser·통신 없이 다음을 제공한다.
 
