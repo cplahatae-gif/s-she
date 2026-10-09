@@ -55,4 +55,3 @@ Approximate normalized coordinates against the full uncropped final image:
 - Work deck foot-contact line: approximately `v=0.293` across the visible run.
 
 Markers and instructions remain separate code-rendered overlays.
-
