@@ -1,0 +1,55 @@
+{
+  "checks": [
+    {
+      "id": "tryout-skip",
+      "kind": "outcome",
+      "photo": {
+        "src": "http://127.0.0.1:8770/%ED%95%98%ED%83%9C%EC%A4%80/%EC%B4%88%EC%95%88/assets/actions/v2/control-idle.png",
+        "fitted": 1,
+        "density": 1,
+        "overlays": 0,
+        "overflow": false,
+        "captionBottom": 1064
+      }
+    },
+    {
+      "id": "tryout-failed",
+      "kind": "outcome",
+      "photo": {
+        "src": "http://127.0.0.1:8770/%ED%95%98%ED%83%9C%EC%A4%80/%EC%B4%88%EC%95%88/assets/actions/v2/control-idle.png",
+        "fitted": 1,
+        "density": 1,
+        "overlays": 0,
+        "overflow": false,
+        "captionBottom": 1064
+      }
+    },
+    {
+      "id": "tryout-no-return",
+      "kind": "outcome",
+      "photo": {
+        "src": "http://127.0.0.1:8770/%ED%95%98%ED%83%9C%EC%A4%80/%EC%B4%88%EC%95%88/assets/actions/v2/control-idle.png",
+        "fitted": 1,
+        "density": 1,
+        "overlays": 0,
+        "overflow": false,
+        "captionBottom": 1064
+      }
+    },
+    {
+      "id": "tryout-correct",
+      "kind": "outcome",
+      "photo": {
+        "src": "http://127.0.0.1:8770/%ED%95%98%ED%83%9C%EC%A4%80/%EC%B4%88%EC%95%88/assets/actions/v2/control-idle.png",
+        "fitted": 1,
+        "density": 1,
+        "overlays": 0,
+        "overflow": false,
+        "captionBottom": 1064
+      }
+    }
+  ],
+  "count": 4,
+  "counters": "선택 20 되감기 3",
+  "kind": "outcome"
+}
