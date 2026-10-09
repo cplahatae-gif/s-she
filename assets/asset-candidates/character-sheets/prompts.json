@@ -1,0 +1,26 @@
+{
+  "tool": "built-in image_gen",
+  "prompt": "Use case: photorealistic-natural. Create a professional multi-angle character reference sheet from the single attached Korean industrial worker candidate. This reference is the identity-preserving subject, not just a style guide. Preserve EXACT SAME individual, Korean facial appearance, age, body build, face structure, workwear materials/colors, helmet, gloves and boots from the reference. One wide landscape sheet, tidy 3-column by 2-row grid with six separate full-body views of this ONE person, no panels, no dividers, NO WORDS or letters or numbering. Top row left to right: straight front, straight back, strict left-side profile. Bottom row left to right: strict right-side profile, front three-quarter angle, rear three-quarter angle. Ensure front and rear views truly face camera and away; ensure left and right profiles are opposing directions. Natural neutral standing stance, arms slightly apart from torso so clothing and silhouette are visible, no props. All six figures exactly same height, same anatomy and costume, equal spacing, completely visible helmet to soles, generous clear gutters, no overlaps or cropping. White unbranded hard hat with consistent chin strap, navy jacket and work trousers, worn muted yellow safety vest with silver reflective bands with physically consistent front/back construction, gray gloves, worn dark work boots. Natural photographic Korean worker, believable proportions, mild surface dust and wear. Uniform plain cool neutral gray backdrop and consistent soft photographic light, subtle warm side light, no industrial setting, no ground distractions. No cartoons, pixel art, low poly, toy miniature, neon colors, logos, watermark, UI, cursors, text of any kind including clothing, readable writing or fake writing. No accidents, injury, explosion or blood. These are multi-angle identity reference views, not a walk cycle.",
+  "views": [
+    "front",
+    "back",
+    "left-profile",
+    "right-profile",
+    "front-three-quarter",
+    "rear-three-quarter"
+  ],
+  "sheets": [
+    {
+      "file": "sheet-01-30s.png",
+      "reference": "../character-candidates/candidate-01-30s.png"
+    },
+    {
+      "file": "sheet-02-40s.png",
+      "reference": "../character-candidates/candidate-02-40s.png"
+    },
+    {
+      "file": "sheet-03-50s.png",
+      "reference": "../character-candidates/candidate-03-50s.png"
+    }
+  ]
+}
