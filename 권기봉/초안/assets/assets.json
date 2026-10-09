@@ -1,0 +1,55 @@
+{
+  "background": {
+    "file": "stage-background.png",
+    "width": 2172,
+    "height": 724,
+    "walklineV": 0.83,
+    "startU": 0.22,
+    "targets": {
+      "work-access": { "u": 0.16, "v": 0.65 },
+      "energy-isolator": { "u": 0.855, "v": 0.57 }
+    }
+  },
+  "worker": {
+    "file": "worker-walk.png",
+    "width": 1254,
+    "height": 1254,
+    "columns": 2,
+    "rows": 2,
+    "facing": "right",
+    "standingHeight": 594,
+    "frames": [
+      {
+        "x": 0, "y": 0, "width": 627, "height": 627,
+        "footX": 363, "footY": 620,
+        "pose": "idle",
+        "bbox": { "x": 301, "y": 26, "width": 141, "height": 594 }
+      },
+      {
+        "x": 627, "y": 0, "width": 627, "height": 627,
+        "footX": 328, "footY": 615,
+        "pose": "left-contact",
+        "bbox": { "x": 177, "y": 29, "width": 330, "height": 586 }
+      },
+      {
+        "x": 0, "y": 627, "width": 627, "height": 627,
+        "footX": 355, "footY": 600,
+        "pose": "passing",
+        "bbox": { "x": 285, "y": 17, "width": 187, "height": 583 }
+      },
+      {
+        "x": 627, "y": 627, "width": 627, "height": 627,
+        "footX": 322, "footY": 601,
+        "pose": "right-contact",
+        "bbox": { "x": 171, "y": 21, "width": 363, "height": 580 }
+      }
+    ]
+  },
+  "generation": {
+    "date": "2026-10-09",
+    "tool": "built-in image_gen",
+    "prompts": "generation-prompts.md",
+    "draftOnly": true,
+    "alphaThresholdForBounds": 32
+  }
+}
