@@ -4,6 +4,7 @@ import { dirname, extname, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { judgeEntry, runFromPayload } from './src/scenario.mjs';
 import { fixedExplanation, sentences, validSupplement } from './src/feedback.mjs';
+import { buildLearningReport, learningAIChoices, mergeLearningAI } from './src/learning.mjs';
 
 const draftRoot = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(draftRoot, '../..');
@@ -11,7 +12,7 @@ const prefix = '/권기봉/초안/';
 const publicFiles = new Map([
   [prefix, 'index.html'],
   [prefix + 'index.html', 'index.html'],
-  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/layout.mjs', 'src/motion.mjs']
+  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/choice-feedback.mjs', 'src/learning.mjs', 'src/layout.mjs', 'src/motion.mjs', 'src/action-plan.mjs']
     .map((name) => [prefix + name, name]),
   ['/vendor/phaser.min.js', '../../vendor/phaser.min.js'],
   ['/vendor/PHASER-LICENSE.txt', '../../vendor/PHASER-LICENSE.txt'],
@@ -84,6 +85,45 @@ async function supplement(run, config, signal) {
   }
 }
 
+async function analyzeLearning(fixed, config, signal) {
+  if (!config.apiKey || signal.aborted) return fixed;
+  const choices = learningAIChoices(fixed);
+  const timeout = AbortSignal.timeout(8000);
+  try {
+    const response = await config.providerFetch('https://api.openai.com/v1/responses', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },
+      signal: AbortSignal.any([signal, timeout]),
+      body: JSON.stringify({
+        model: config.model, store: false, max_output_tokens: 900,
+        instructions: '한국어 안전교육 실습의 관찰된 선택 기록만 해석합니다. 입력의 summary 후보 하나와 승인된 coachingTips 중 근거에 적합한 1~3개를 선택하고 우선순위를 정합니다. 단계와 문구의 쌍을 그대로 사용합니다. 의지·성격·동기·태도·능력을 추정하거나 근거 없는 사실, 현장 절차, 안전 허가를 만들지 않습니다. 정답 판정, 통계, 취약 단계, 교육 추천은 이미 코드로 확정됐으며 변경할 수 없습니다. 오답이 있는 단계부터 복습을 돕습니다. 시간·개인정보·다른 실습의 기록은 없습니다.',
+        input: JSON.stringify({ metrics: fixed.metrics, strengths: fixed.strengths, weaknesses: fixed.weaknesses,
+          learningBehavior: fixed.learningBehavior, approvedSummaries: choices.summaries, approvedCoaching: choices.tips }),
+        text: { format: { type: 'json_schema', name: 'safeplay_learning_coaching', strict: true, schema: {
+          type: 'object', additionalProperties: false, required: ['summary', 'coachingTips'],
+          properties: {
+            summary: { type: 'string', enum: choices.summaries },
+            coachingTips: { type: 'array', minItems: 1, maxItems: 3, items: {
+              type: 'object', additionalProperties: false, required: ['stepId', 'text'],
+              properties: { stepId: { type: 'string', enum: choices.tips.map(({ stepId }) => stepId) },
+                text: { type: 'string', enum: choices.tips.map(({ text }) => text) } },
+            } },
+          },
+        } } },
+      }),
+    });
+    if (!response.ok || signal.aborted || timeout.aborted) return fixed;
+    const data = await response.json();
+    if (data.status !== 'completed' || signal.aborted || timeout.aborted) return fixed;
+    const content = (Array.isArray(data.output) ? data.output : [])
+      .filter((item) => item.type === 'message' && Array.isArray(item.content)).flatMap((item) => item.content);
+    if (content.some((item) => item.type === 'refusal')) return fixed;
+    const text = content.filter((item) => item.type === 'output_text' && typeof item.text === 'string').map((item) => item.text).join('');
+    if (!text || text.length > 4000) return fixed;
+    return mergeLearningAI(fixed, JSON.parse(text));
+  } catch { return fixed; }
+}
+
 async function serveFile(pathname, response) {
   let filename = publicFiles.get(pathname);
   const isDraftAsset = pathname.startsWith(prefix + 'assets/');
@@ -127,6 +167,21 @@ export function makeServer({ apiKey = process.env.OPENAI_API_KEY ?? '', model = 
         response.once('close', () => { if (!response.writableEnded) controller.abort(); });
         const explanation = await supplement(run, config, controller.signal);
         if (!response.destroyed) json(response, 200, explanation);
+      } else if (pathname === prefix + 'api/learning') {
+        if (request.method !== 'POST') throw new RequestError(405);
+        if (!/^application\/json(?:\s*;|$)/iu.test(request.headers['content-type'] ?? '')) throw new RequestError(415);
+        if (Number(request.headers['content-length']) > 8192) { request.resume(); throw new RequestError(413); }
+        let fixed;
+        try {
+          const body = JSON.parse(await readBody(request));
+          if (!body || typeof body !== 'object' || Array.isArray(body) || Object.keys(body).length !== 2
+            || !Object.hasOwn(body, 'run') || !Object.hasOwn(body, 'events')) throw new TypeError('학습 요청이 올바르지 않습니다.');
+          fixed = buildLearningReport(runFromPayload(body.run), body.events);
+        } catch (error) { throw error instanceof RequestError ? error : new RequestError(400); }
+        const controller = new AbortController();
+        response.once('close', () => { if (!response.writableEnded) controller.abort(); });
+        const report = await analyzeLearning(fixed, config, controller.signal);
+        if (!response.destroyed) json(response, 200, report);
       } else {
         if (request.method !== 'GET') throw new RequestError(405);
         await serveFile(pathname, response);

@@ -1,0 +1,186 @@
+{
+  "version": 3,
+  "actions": {
+    "file": "worker-actions-v3.png",
+    "width": 1774,
+    "height": 887,
+    "columns": 4,
+    "rows": 2,
+    "standingHeight": 450,
+    "layout": "Measured 4-by-2 atlas; explicit frame rectangles preserve complete feet across unequal generated row heights.",
+    "frames": [
+      {
+        "pose": "radio",
+        "x": 0,
+        "y": 0,
+        "width": 444,
+        "height": 478,
+        "anchorX": 240,
+        "footY": 468,
+        "bodyHeight": 448,
+        "handX": 292,
+        "handY": 102
+      },
+      {
+        "pose": "press",
+        "x": 444,
+        "y": 0,
+        "width": 443,
+        "height": 478,
+        "anchorX": 205,
+        "footY": 469,
+        "bodyHeight": 450,
+        "handX": 384,
+        "handY": 107
+      },
+      {
+        "pose": "lock",
+        "x": 887,
+        "y": 0,
+        "width": 443,
+        "height": 478,
+        "anchorX": 213,
+        "footY": 469,
+        "bodyHeight": 451,
+        "handX": 326,
+        "handY": 167
+      },
+      {
+        "pose": "tag",
+        "x": 1330,
+        "y": 0,
+        "width": 444,
+        "height": 478,
+        "anchorX": 210,
+        "footY": 468,
+        "bodyHeight": 449,
+        "handX": 337,
+        "handY": 128
+      },
+      {
+        "pose": "tryout",
+        "x": 0,
+        "y": 478,
+        "width": 444,
+        "height": 409,
+        "anchorX": 225,
+        "footY": 393,
+        "bodyHeight": 379,
+        "handX": 339,
+        "handY": 145
+      },
+      {
+        "pose": "cleanup",
+        "x": 444,
+        "y": 478,
+        "width": 443,
+        "height": 409,
+        "anchorX": 225,
+        "footY": 384,
+        "bodyHeight": 265,
+        "handX": 292,
+        "handY": 315
+      },
+      {
+        "pose": "unsafe",
+        "x": 887,
+        "y": 478,
+        "width": 463,
+        "height": 409,
+        "anchorX": 246,
+        "footY": 388,
+        "bodyHeight": 243,
+        "handX": 438,
+        "handY": 283
+      },
+      {
+        "pose": "recoil",
+        "x": 1400,
+        "y": 478,
+        "width": 374,
+        "height": 409,
+        "anchorX": 196,
+        "footY": 392,
+        "bodyHeight": 380,
+        "handX": 190,
+        "handY": 95
+      }
+    ]
+  },
+  "equipment": {
+    "file": "equipment-v3.png",
+    "width": 1536,
+    "height": 1024,
+    "columns": 2,
+    "rows": 2,
+    "frames": [
+      {
+        "id": "control",
+        "x": 0,
+        "y": 0,
+        "width": 768,
+        "height": 512,
+        "anchorX": 402,
+        "footY": 497,
+        "bodyHeight": 451,
+        "stopX": 347,
+        "stopY": 114,
+        "startX": 422,
+        "startY": 113
+      },
+      {
+        "id": "mcc",
+        "x": 768,
+        "y": 0,
+        "width": 768,
+        "height": 512,
+        "anchorX": 368,
+        "footY": 495,
+        "bodyHeight": 488,
+        "isolatorX": 341,
+        "isolatorY": 245,
+        "haspX": 405,
+        "haspY": 235
+      },
+      {
+        "id": "padlock",
+        "x": 207,
+        "y": 542,
+        "width": 272,
+        "height": 438,
+        "anchorX": 136,
+        "footY": 433,
+        "bodyHeight": 426,
+        "shackleX": 132,
+        "shackleY": 104
+      },
+      {
+        "id": "tag",
+        "x": 1008,
+        "y": 512,
+        "width": 255,
+        "height": 475,
+        "anchorX": 128,
+        "footY": 464,
+        "bodyHeight": 454,
+        "eyeletX": 128,
+        "eyeletY": 121
+      }
+    ]
+  },
+  "debris": {
+    "file": "debris-v3.png",
+    "width": 2172,
+    "height": 724,
+    "anchorX": 1087,
+    "footY": 646,
+    "bodyHeight": 551
+  },
+  "notes": [
+    "Transparent source RGBA preserved without raster edits.",
+    "All action poses face right. Scale every action using standingHeight=450; bodyHeight is an alpha-bound measurement, not a scale target.",
+    "Hand and anchor coordinates are local to each frame rectangle; x/y are atlas crop offsets.",
+    "Cleanup and unsafe are naturally shorter crouched poses; tryout leans forward and recoil uses a wide defensive step.",
+    "Padlock frame excludes the separately photographed key; tag eyelet and MCC hasp coordinates support physical attachment alignment."
+  ]
+}

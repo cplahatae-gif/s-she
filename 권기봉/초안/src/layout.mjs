@@ -5,8 +5,8 @@ export const layout = Object.freeze({
   floorRatio: 0.86,
   walkingSpeed: 200,
   strideLength: 260,
-  interactionRadius: 180,
-  workerHeightRatio: 0.43,
+  interactionRadius: 220,
+  workerHeightRatio: 0.347,
   edgeMargin: 76,
   startOffset: 230,
 });

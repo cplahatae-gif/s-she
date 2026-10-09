@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createMotion, clearMotion, queueTap, advanceMotion, advanceCamera, motionConfig } from '../src/motion.mjs';
+import { createMotion, clearMotion, queueTap, advanceMotion, advanceTo, advanceCamera, motionConfig } from '../src/motion.mjs';
 const bounds = { minX: 0, maxX: 1000 };
 const advance = (state, input, count) => { for (let i = 0; i < count; i++) advanceMotion(state, input, 1 / 60, bounds); };
 
@@ -75,4 +75,31 @@ test('camera approaches smoothly, clamps bounds, and does not instantly jump on 
   assert.ok(Math.abs(reversed - forward) < 60);
   assert.ok(advanceCamera(0, 0, -200, 1, 1280, 3200) >= 0);
   assert.ok(advanceCamera(1920, 3200, 200, 1, 1280, 3200) <= 1920);
+});
+
+
+test('automatic approaches slow down before contact and never overshoot either endpoint', () => {
+  const state = createMotion(400);
+  for (const target of [520, 430]) {
+    const trace = [];
+    for (let index = 0; index < 180; index++) {
+      advanceTo(state, target, 1 / 60, bounds);
+      trace.push({ x: state.x, velocity: Math.abs(state.velocity) });
+    }
+    assert.ok(Math.abs(state.x - target) < .001);
+    assert.equal(state.velocity, 0);
+    assert.equal(state.frame, -1);
+    assert.ok(trace.every((entry) => target === 520 ? entry.x <= target : entry.x >= target));
+    const cruise = trace.findIndex((entry) => entry.velocity === motionConfig.speed);
+    assert.ok(cruise >= 0);
+    assert.ok(trace.slice(cruise + 1).some((entry) => entry.velocity > 0 && entry.velocity < motionConfig.speed));
+  }
+});
+
+test('camera deadzone absorbs small grounded steps and keeps motion lead modest', () => {
+  const camera = 400, center = camera + 640;
+  assert.equal(advanceCamera(camera, center + 35, 0, 1 / 60, 1280, 3200), camera);
+  assert.equal(advanceCamera(camera, center - 35, 0, 1 / 60, 1280, 3200), camera);
+  const moved = advanceCamera(camera, center + 80, 200, 1 / 60, 1280, 3200);
+  assert.ok(moved > camera && moved - camera < 12);
 });
