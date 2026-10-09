@@ -1,0 +1,82 @@
+✔ all choices have playable physical actions with their original verdict (3.5223ms)
+✔ missing or invalid identification never restarts an isolated conveyor (0.3131ms)
+✔ failed tryout shows motion then stops; no-return leaves selector at start (0.2716ms)
+✔ unsafe stopped entry and early unlock show distinct loss of protection (0.3726ms)
+✔ a visible coworker can initiate only the three unprotected restart accident branches (0.5242ms)
+✔ foreign lock owner removes only their own lock, leaving a stopped unprotected example (0.8886ms)
+✔ tag inspection and radio replies cannot unlock or restart equipment (0.8588ms)
+✔ all eighteen canonical wrong choices have concise distinct actionable feedback (2.5061ms)
+✔ feedback rejects unknown and correct choice IDs without changing the game (1.6506ms)
+✔ nonaccident guidance distinguishes identification, missing personal protection and failed verification (0.5697ms)
+✔ choice presentation leaves world position, facing, gait and safety untouched (1.6029ms)
+✔ focus eases from the previous camera and remains bounded near world edges (0.3366ms)
+✔ reduced motion keeps front presentation stable without zoom or breathing (0.1661ms)
+✔ first-pass completion produces observed strengths and working local maintenance courses (2.2352ms)
+✔ correcting an error preserves weakness evidence and prioritizes repeated errors (1.5716ms)
+✔ accident events replay as rewinds while ordinary wrong choices do not (0.4628ms)
+✔ unknown, out-of-order, missing and forged counters cannot become learning evidence (1.1347ms)
+✔ history boundary keeps all 256 observations and rejects 257 rather than truncating (1.9859ms)
+✔ approved AI coaching is grounded in actual weak steps and leaves canonical evidence immutable (0.6674ms)
+✔ learning export carries anonymous observed data and resolvable course IDs (0.4588ms)
+✔ client defaults to analysis endpoint and ignores tampered server metrics (19.165ms)
+✔ client offline, disabled, no-key, invalid AI and timeout failures return honest rule analysis (2.0297ms)
+✔ cancelled analysis cannot render a stale response even if transport resolves late (1.0999ms)
+✔ held motion accelerates, releasing brakes promptly, and stopped frames stay idle (0.9326ms)
+✔ reverse brakes before changing facing and then walks opposite (0.8017ms)
+✔ button tap travels 60 smoothly and tiny key tap visibly travels 12 without overshoot (0.5162ms)
+✔ bounds discard remaining travel and clear/reset cannot retain held velocity or queued input (0.2535ms)
+✔ walk phase reflects moved distance regardless of rendering frequency (0.2349ms)
+✔ camera approaches smoothly, clamps bounds, and does not instantly jump on reversal (0.4208ms)
+✔ automatic approaches slow down before contact and never overshoot either endpoint (1.2508ms)
+✔ camera deadzone absorbs small grounded steps and keeps motion lead modest (0.1907ms)
+PASS 6단계는 고유한 네 보기와 정답 한 개이며 정답 위치가 달라진다
+PASS 조사는 상태를 완료하지 않고 새 실습의 기록은 독립적이다
+PASS 정답의 결과를 확인하기 전에는 다음 단계로 넘어가지 않는다
+PASS 현재 단계보다 앞뒤의 선택은 횟수와 상태를 바꾸지 않는다
+PASS 알 수 없는 ID는 완료나 결과 대기 중에도 어떤 변경보다 먼저 거부한다
+PASS 모든 18개 오답은 자기 결과와 설명을 갖고 체크포인트를 유지한다
+PASS 표지 누락과 트라이아웃 실패는 진입 사고로 만들지 않는다
+PASS 사고 되감기는 기존 기록과 안전조치를 유지하고 같은 단계에서 보완한다
+PASS 전체 여섯 단계 완료 후 성공하고 재선택을 차단한다
+PASS 진입 판정은 미완료와 성공 모두 기록을 변경하지 않는다
+PASS 모든 단계와 대기 결과의 JSON 왕복은 독립 사본을 만든다
+PASS 전송 객체의 필드·ID·타입·범위를 검증한다
+PASS 허위 단계·완료·횟수·정답대기 상태를 거부한다
+PASS 기록 상한에서는 새 선택이 상태를 변경하지 않는다
+14 scenario tests passed.
+✔ 권기봉\초안\tests\scenario.test.mjs (74.9881ms)
+✔ explicit public modules are served with JavaScript MIME (51.0602ms)
+✔ explicit index link is served as HTML (12.1291ms)
+✔ selected briefing portrait is served from the exact shared asset mapping (15.3511ms)
+✔ server, tests, secrets and repo files are not public (11.7953ms)
+✔ raw traversal and malformed URL encodings are rejected (7.114ms)
+✔ server recalculates checkpoint 0 with no key (7.5258ms)
+✔ server recalculates checkpoint 1 with no key (3.9638ms)
+✔ server recalculates checkpoint 2 with no key (3.461ms)
+✔ server recalculates checkpoint 3 with no key (3.9299ms)
+✔ server recalculates checkpoint 4 with no key (3.4246ms)
+✔ server recalculates checkpoint 5 with no key (2.6797ms)
+✔ server recalculates checkpoint 6 with no key (3.2094ms)
+✔ pending choices and rewound accident checkpoints use validated state (8.4065ms)
+✔ completed sixth checkpoint is success with the full safety explanation (3.7681ms)
+✔ unknown fields, forged verdicts, ids, types and inconsistent quiz states are rejected (20.9004ms)
+✔ malformed JSON and oversized bodies return errors without crashing the server (7.7765ms)
+✔ provider response is parsed across message outputs and preserves immutable outcome (6.7038ms)
+✔ provider errors and changed verdict text preserve fixed explanation (11.1685ms)
+✔ client fixed mode is three sentences and does not mutate a successful run (0.3993ms)
+✔ client fallback covers unavailable endpoints (0.3783ms)
+✔ client rejects already aborted request so a stale UI cannot render it (0.4576ms)
+✔ client ignores a late response after caller cancellation even if transport resolves (0.2616ms)
+✔ learning API validates replay and returns full rule report without a key (6.2287ms)
+✔ learning API rejects noncompletion, forged histories, extra fields and inconsistent counts (11.3948ms)
+✔ learning API preserves JSON method and 8 KB request boundary (7.004ms)
+✔ learning provider uses strict Responses schema and can prioritize only evidence-grounded approved coaching (6.1461ms)
+✔ learning provider refusal, incomplete, invalid JSON, psychology, altered evidence and timeout fall back to rules (42.1267ms)
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 443.5048

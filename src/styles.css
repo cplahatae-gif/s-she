@@ -448,3 +448,35 @@ dialog.compact-feedback.large-text .choice-details p { font-size: 16px; }
   dialog.compact-feedback { width: min(360px, calc(var(--scene-width) * .4)); }
   dialog.compact-feedback .dialog-inner { padding: 14px; }
 }
+
+/* A frontal worker waits on the left; one decision remains on the right. */
+dialog[data-kind='quiz'] {
+  width: min(600px, calc(var(--scene-width) * .48));
+  height: calc(var(--scene-height) - 124px);
+  max-height: calc(var(--scene-height) - 124px);
+  inset: calc(var(--scene-top) + 98px) calc(var(--scene-left) + 22px) auto auto;
+  overflow: hidden; background: #172129ed; border-color: #8397a2;
+}
+dialog[data-kind='quiz'] #dialog-content { height: 100%; min-height: 0; }
+dialog[data-kind='quiz'] .dialog-inner { height: 100%; min-height: 0; display: flex; flex-direction: column; padding: 20px 22px; }
+dialog[data-kind='quiz'] .dialog-topline { flex-shrink: 0; margin-bottom: 13px; }
+dialog[data-kind='quiz'] .choice-wait-cue { flex-shrink: 0; margin: 0 0 8px; font-size: 13px; line-height: 1.5; color: #c2d0d7; }
+dialog[data-kind='quiz'] h2 { flex-shrink: 0; font-size: 22px; line-height: 1.45; margin: 0 0 17px; }
+dialog[data-kind='quiz'] .choice-options-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: #8397a2 #27333a; padding: 4px; margin: -4px; }
+dialog[data-kind='quiz'] .option-list { grid-template-columns: 1fr; gap: 10px; margin: 0; }
+dialog[data-kind='quiz'] .option-list button { min-height: 64px; font-size: 16px; line-height: 1.6; padding: 12px 14px; background: #27333ae8; gap: 12px; }
+dialog[data-kind='quiz'] .option-list button > span:nth-child(2) { word-break: keep-all; overflow-wrap: anywhere; }
+dialog[data-kind='quiz'] .choice-guide { flex-shrink: 0; margin: 14px 0 0; padding-top: 10px; border-top: 1px solid #52616a; font-size: 12px; line-height: 1.6; color: #e6ebed; }
+dialog.large-text[data-kind='quiz'] h2 { font-size: 25px; }
+dialog.large-text[data-kind='quiz'] .option-list button { font-size: 18px; }
+dialog.large-text[data-kind='quiz'] .choice-wait-cue, dialog.large-text[data-kind='quiz'] .choice-guide { font-size: 14px; }
+@media (max-width: 1050px), (max-height: 620px) {
+  dialog[data-kind='quiz'] { inset: calc(var(--scene-top) + 80px) calc(var(--scene-left) + 14px) auto auto; height: calc(var(--scene-height) - 96px); max-height: calc(var(--scene-height) - 96px); }
+  dialog[data-kind='quiz'] .dialog-inner { padding: 14px 16px; }
+  dialog[data-kind='quiz'] .dialog-topline { margin-bottom: 8px; }
+  dialog[data-kind='quiz'] h2 { font-size: 20px; margin-bottom: 12px; }
+  dialog[data-kind='quiz'] .option-list button { padding: 10px 11px; font-size: 15px; min-height: 56px; gap: 9px; }
+  dialog.large-text[data-kind='quiz'] h2 { font-size: 23px; }
+  dialog.large-text[data-kind='quiz'] .option-list button { font-size: 18px; }
+  dialog[data-kind='quiz'] .choice-guide { margin-top: 10px; }
+}

@@ -75,7 +75,7 @@ function updatePosition(nextPosition) {
     chip.dataset.worldX = String(Math.round(nextPosition.x));
     chip.dataset.targetId = nextPosition.nearestTargetId;
     chip.dataset.inRange = String(Boolean(nextPosition.inRange));
-    for (const field of ['velocity', 'facing', 'frame', 'cameraX', 'floorY', 'visualAction', 'pose', 'beltRunning', 'lockVisible', 'tagVisible', 'cameraZoom', 'actionPhase', 'visualMessage', 'objectiveDirection', 'objectiveDistance', 'actorPhase', 'actorAction', 'actorX', 'objectiveVisible', 'objectiveOutline', 'objectiveArrow', 'actorMode', 'actorOwner', 'ownerReleased', 'inspectionStatus', 'isolationOn', 'scopeBlocked', 'riskExample']) {
+    for (const field of ['velocity', 'facing', 'frame', 'cameraX', 'floorY', 'visualAction', 'pose', 'beltRunning', 'lockVisible', 'tagVisible', 'cameraZoom', 'actionPhase', 'visualMessage', 'objectiveDirection', 'objectiveDistance', 'actorPhase', 'actorAction', 'actorX', 'objectiveVisible', 'objectiveOutline', 'objectiveArrow', 'actorMode', 'actorOwner', 'ownerReleased', 'inspectionStatus', 'isolationOn', 'scopeBlocked', 'riskExample', 'choiceFocused', 'displayFacing', 'choiceZoom', 'choiceScale', 'frontRenderedHeight', 'waitingMotion']) {
       chip.dataset[field] = String(nextPosition[field] ?? '');
     }
   }
@@ -95,17 +95,20 @@ function openDialog(kind, html, initialFocus = '.primary') {
   dialogContent.innerHTML = `<div class="dialog-inner">${html}</div>`;
   stage?.setPaused(true);
   if (!dialog.open) dialog.showModal();
-  dialogContent.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => dialog.close()));
+  stage?.setChoiceFocus?.(kind === 'quiz');
+  dialogContent.querySelectorAll('[data-close]').forEach(button => button.addEventListener('click', () => { stage?.setChoiceFocus?.(false); dialog.close(); }));
   dialogContent.querySelectorAll('[data-overview]').forEach(button => button.addEventListener('click', showOverview));
   requestAnimationFrame(() => dialogContent.querySelector(initialFocus)?.focus());
 }
-function forceCloseDialog() { modalKind = ''; document.querySelector('.app-shell').dataset.dialog = ''; if (dialog.open) dialog.close(); }
+function forceCloseDialog() { stage?.setChoiceFocus?.(false); modalKind = ''; document.querySelector('.app-shell').dataset.dialog = ''; if (dialog.open) dialog.close(); }
 dialog.addEventListener('cancel', event => {
+  if (modalKind === 'quiz') stage?.setChoiceFocus?.(false);
   if (['accident', 'outcome', 'result', 'brief'].includes(modalKind)) event.preventDefault();
   if (modalKind === 'training') { event.preventDefault(); showResult(); }
 });
 dialog.addEventListener('close', () => {
   if (dialog.open) return;
+  stage?.setChoiceFocus?.(false);
   modalKind = ''; document.querySelector('.app-shell').dataset.dialog = ''; stage?.setPaused(Boolean(run?.completed || run?.pending || actionInFlight));
   if (view === 'stage') {
     if (returnFocus?.isConnected && returnFocus !== document.body) returnFocus.focus();
@@ -198,7 +201,7 @@ function openCurrentQuiz() {
   if (!step || run.pending || actionInFlight) return;
   if (!isNear(step.targetId)) { stage?.setPaused(false); toast(`${targetById(step.targetId)?.title} 가까이 이동한 뒤 E 또는 행동 선택 버튼을 누르세요.`); return; }
   run.observed.add(step.targetId);
-  openDialog('quiz', `<div class="dialog-topline"><span class="dialog-kicker">${run.stepIndex + 1} / 6 · ${escapeHtml(step.title)}</span><button class="dialog-close" data-close type="button">현장 보기 ×</button></div><p class="question-location">${escapeHtml(targetById(step.targetId)?.title)}</p><h2 id="dialog-title">${escapeHtml(step.question)}</h2><div class="option-list">${step.options.map((option, index) => `<button type="button" data-option="${escapeHtml(option.id)}"><span class="option-letter">${String.fromCharCode(65 + index)}</span><span>${escapeHtml(option.text)}</span><kbd>${index + 1}</kbd></button>`).join('')}</div><p class="choice-guide">한 가지 행동을 선택하세요. 숫자 키 1–4로도 선택할 수 있습니다.</p>`, '[data-option]');
+  openDialog('quiz', `<div class="dialog-topline"><span class="dialog-kicker">${run.stepIndex + 1} / 6 · ${escapeHtml(step.title)}</span><button class="dialog-close" data-close type="button">현장 보기 ×</button></div><p class="question-location">${escapeHtml(targetById(step.targetId)?.title)}</p><p class="choice-wait-cue">당신의 판단을 기다립니다.</p><h2 id="dialog-title">${escapeHtml(step.question)}</h2><div class="choice-options-scroll"><div class="option-list">${step.options.map((option, index) => `<button type="button" data-option="${escapeHtml(option.id)}"><span class="option-letter">${String.fromCharCode(65 + index)}</span><span>${escapeHtml(option.text)}</span><kbd>${index + 1}</kbd></button>`).join('')}</div></div><p class="choice-guide">한 가지 행동을 선택하세요. 숫자 키 1–4로도 선택할 수 있습니다.</p>`, '[data-option]');
   dialogContent.querySelectorAll('[data-option]').forEach(button => button.addEventListener('click', () => selectOption(button.dataset.option)));
 }
 async function selectOption(optionId) {
