@@ -1,0 +1,4 @@
+2026-10-09
+Command: mcp__playwright__browser_run_code_unsafe filename=하태준_omo/tests/browser/overview.js
+Actual browser URL: http://127.0.0.1:8770/하태준_omo/?diagnostics=1
+Before production implementation: Error: OV01: 공장 진입 버튼 없음

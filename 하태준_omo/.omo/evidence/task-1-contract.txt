@@ -1,0 +1,36 @@
+PASS 대상 표: 4 unique IDs: work-access, control-panel, energy-isolator, verification-point
+PASS 행동 표: 7 unique IDs: isolate-energy, attach-personal-lock, attach-wrong-lock, attach-tag, clear-residual-energy, verify-isolation, enter-work
+PASS contract token: TypeError
+PASS contract token: RangeError
+PASS contract token: verification-failed
+PASS contract token: incomplete
+PASS contract token: success
+PASS contract token: paused === true
+PASS contract token: TARGETS
+PASS contract token: ACTIONS
+PASS contract token: SAFETY_STEPS
+PASS contract token: TEXT
+PASS judgment priority: 5 ordered branches
+PASS invalidation: 3 actual changes
+15:| `work-access` | 컨베이어 점검구 | `enter-work` |
+16:| `control-panel` | 조작반 | 없음, 조사만 허용 |
+17:| `energy-isolator` | 에너지 차단·잠금 지점 | `isolate-energy`, `attach-personal-lock`, `attach-wrong-lock`, `attach-tag` |
+18:| `verification-point` | 잔류 에너지·차단 확인 지점 | `clear-residual-energy`, `verify-isolation` |
+26:| `isolate-energy` | 에너지 차단 | `energy-isolator` |
+27:| `attach-personal-lock` | 본인 자물쇠 체결 | `energy-isolator` |
+28:| `attach-wrong-lock` | 다른 위치에 자물쇠 체결 (실습) | `energy-isolator` |
+29:| `attach-tag` | 표지 부착 | `energy-isolator` |
+30:| `clear-residual-energy` | 잔류 에너지 안전조치 | `verification-point` |
+31:| `verify-isolation` | 차단 확인 | `verification-point` |
+32:| `enter-work` | 현재 상태로 점검구에 들어가 이물질을 제거한다. | `work-access` |
+74:조사는 중복되어도 한 번만 기록한다. 조사 전후 안전 상태와 모든 카운터, 완료 상태는 불변이다. 대상 설명을 읽는 일은 안전조치가 아니다. `judgeEntry()`는 미리보기 함수가 아니라 진입 제출 함수다. `applyAction(run, 'enter-work')`는 이 경로를 한 번 실행하며 호출부는 다시 `judgeEntry()`를 호출하지 않는다.
+78:식별자 자료형을 먼저 검사한다. 인자 누락(`undefined`), `null`, 숫자, 객체, 배열 등 비문자 식별자는 `TypeError`, 빈 문자열과 허용 목록 밖 문자열은 `RangeError`다. 완료 판에서도 식별자 검사가 우선한다. 오류 전후 `run` 전체와 모든 카운터는 동일하다.
+86:| 실행된 확인 행동 실패 | `{ kind: 'blocked', effect: 'verification-failed', reason: TEXT.verificationFailed }` |
+88:| 진입 시 기록된 확인 실패 | `{ kind: 'blocked', effect: 'verification-failed', reason: TEXT.verificationFailed }` |
+89:| 진입 시 일반 미완료 | `{ kind: 'incomplete', reason: TEXT.incomplete }` |
+90:| 성공 진입 | `{ kind: 'success', reason: TEXT.resultDescription }` |
+116:3. `verification === 'failed'`: `blocked`, `effect: 'verification-failed'`, `TEXT.verificationFailed`.
+117:4. `tagged === false`, `residualCleared === false`, `verification !== 'passed'` 중 하나 이상: `incomplete`, `TEXT.incomplete`.
+118:5. 모두 충족: `success`, `completed = true`, `TEXT.resultDescription`. 안전한 이물질 제거와 결과로 이동한다.
+122:유효 `enter-work` 제출은 사고, 미완료, 기록된 확인 실패, 성공 모두 `attempts`를 정확히 1 늘린다. `verify-isolation` 행동 자체의 성공 또는 실패, 조사, 안전조치, 보완 선택, 무효 요청, 완료 뒤 요청은 늘리지 않는다. 보완 선택은 별도 규칙 행동 ID가 아니라 패널을 닫는 앱 동작이다.
+155:| `incomplete` | 아직 필수 조치가 끝나지 않았습니다. 빠진 단계를 완료한 뒤 작업에 들어가세요. |

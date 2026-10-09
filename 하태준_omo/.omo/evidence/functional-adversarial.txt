@@ -1,0 +1,14 @@
+Functional adversarial audit, 2026-10-09
+1. Malformed input: PASS. FG04 injected unknown action; node S02/S03 reject non-string and unknown IDs without mutation.
+2. Cross-target action: PASS. FG04 wrong active target and wrong action owner leave HUD safety and attempts unchanged.
+3. Distance boundary: PASS. FG02 distant E does not open a panel; node L04 tests exact radius and one pixel beyond.
+4. Duplicate input: PASS. FG05 five synchronous entry clicks produce one attempt; five rewind clicks produce one rewind.
+5. Resource failure: PASS. OV03 aborts overview image; OV04 three retries and recovery create one entry button.
+6. Re-entry lifecycle: PASS. LIFE03 three factory loops preserve position; completed run restores result; LIFE05 one key does not multiply movement.
+7. Focus and interruption: PASS. A11Y02 modal Tab/Escape and focus restoration; LIFE05 synthetic window blur releases a held key. Native OS window switching not separately exercised.
+8. Delayed callbacks: LIMITED. LIFE06 waits 1.4 seconds after restart and confirms brief remains stable. Source generation guard and stage timer cancellation inspected; forced obsolete promise completion not injected because app has no global mutation hooks.
+9. Motion preference and reset: PASS. LIFE01 normal and reduced-motion accident cards within 6 seconds, rewind focused; LIFE04 counts, safety, position, camera, velocity reset. Screenshot is final card, not a frame-by-frame shake measurement.
+
+Fix: app requestAction unlock changed from requestAnimationFrame to queueMicrotask. A separate real keyboard action no longer waits for rendering; repeated same-task submissions remain locked.
+Evidence: task-5-green.txt, task-6-green.txt, task-7-green.txt, task-2-recheck.txt, task-5-node-green.txt and related screenshots.
+Limits: readonly HUD verifies observable safety and counters; internal observed Set preservation is covered by scenario unit tests. Visual asset and walking calibration are owned by parent task.

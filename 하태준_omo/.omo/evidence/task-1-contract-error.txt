@@ -1,0 +1,19 @@
+PASS local link: contract.md -> ../구현계획.md
+PASS local link: contract.md -> ../PRD.md
+PASS local link: contract.md -> 결정사항.md
+PASS local link: 결정사항.md -> ../구현계획.md
+PASS local link: 결정사항.md -> ../PRD.md
+PASS local link: 결정사항.md -> contract.md
+PASS local link: 결정사항.md -> ../../docs/시나리오.md
+PASS local link: 결정사항.md -> ../../assets/images/overview/factory-overview.png
+PASS local link: 결정사항.md -> ../../assets/images/scenario-scenes/01-start.png
+PASS local link: 결정사항.md -> ../../assets/images/scenario-scenes/02-isolate.png
+PASS local link: 결정사항.md -> ../../assets/images/scenario-scenes/03-lock-tag.png
+PASS local link: 결정사항.md -> ../../assets/images/scenario-scenes/04-check-before-entry.png
+PASS local link: 결정사항.md -> ../../assets/images/scenario-scenes/05-safe-cleanup.png
+PASS forbidden runtime strings absent from contract; exclusion reasons only in decisions
+PASS missing/non-string ID: TypeError; unknown/empty string ID: RangeError; no state mutation described
+PASS malformed link syntax: no unmatched inline link openings
+PASS dirty-tree scope: wrote only assigned two documents and two evidence files; unrelated existing work untouched
+N/A runtime crash, concurrency, network failure, data migration, performance, browser accessibility, hardware calibration, asset decoding, security execution: document-only task; no production code executed
+N/A RED test: contract documentation is exempt in implementation plan; runtime conformance awaits scenario task

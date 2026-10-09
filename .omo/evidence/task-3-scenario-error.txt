@@ -1,0 +1,11 @@
+﻿✔ S02 malformed identifiers reject without mutation, including after completion (6.3408ms)
+✔ S03 malformed identifiers reject without mutation, including after completion (0.3512ms)
+✔ S10 recorded verification failure outranks missing tag and residual energy (0.1874ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.7897

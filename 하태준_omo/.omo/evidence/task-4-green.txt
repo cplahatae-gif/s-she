@@ -1,0 +1,14 @@
+✔ L01 start is inside world and outside access interaction radius (0.6275ms)
+✔ L02 all standpoints are inside world; boundaries clamp movement (0.1321ms)
+✔ L03 target interaction regions never overlap (0.6291ms)
+✔ L04 exact interaction boundary is allowed; one pixel outside is denied (0.1739ms)
+✔ L05 malformed coordinates and unknown IDs are rejected without changing layout (0.8555ms)
+✔ L06 logical geometry stays immutable independently of display resizing (0.1161ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 6
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 74.6313
