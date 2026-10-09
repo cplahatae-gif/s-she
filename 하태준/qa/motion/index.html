@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAFEPLAY 움직임 비교</title>
+<style>
+body{margin:32px;background:#17201e;color:#edf0e9;font:16px/1.6 sans-serif}main{max-width:1400px;margin:auto}h1{font-size:26px}section{display:grid;grid-template-columns:1fr 1fr;gap:20px}figure{margin:0}video{width:100%;background:#000}figcaption{margin-bottom:8px}button{font:inherit;padding:8px 18px;background:#ffc857;color:#17201e;border:0;border-radius:4px;cursor:pointer}a{color:#ffc857}@media(max-width:800px){section{grid-template-columns:1fr}}
+</style>
+<main>
+<h1>이동과 카메라 변경 전후</h1>
+<p>같은 화면 크기에서 오른쪽 이동, 왼쪽 반전, 정지, 짧게 누르기를 녹화했습니다. 로딩을 제외한 마지막 3.2초를 비교합니다.</p>
+<p><button id="play">처음부터 함께 재생</button></p>
+<section>
+<figure><figcaption>변경 전</figcaption><video controls muted playsinline preload="metadata" src="before-motion.webm"></video></figure>
+<figure><figcaption>변경 후</figcaption><video controls muted playsinline preload="metadata" src="after-motion.webm"></video></figure>
+</section>
+<p>가감속, 감속 후 반전, 카메라 추적과 화면 안내 배치를 조정했습니다. 보행 이미지의 지지발 전이 부족과 발 미끄러짐은 남아 있습니다.</p>
+<p><a href="../../">게임 실행</a></p>
+</main>
+<script>
+document.querySelector('#play').addEventListener('click', () => {
+  document.querySelectorAll('video').forEach(video => { video.currentTime = 0; video.play(); });
+});
+</script>
+</html>

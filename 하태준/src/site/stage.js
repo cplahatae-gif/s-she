@@ -1,4 +1,5 @@
 import { buildLayout } from './layout.mjs';
+import { advanceMovement, followCamera } from './motion.mjs';
 
 const assetUrl = (file) => new URL(`../../assets/${file}`, import.meta.url).href;
 const names = { 'control-panel': '조작반', 'verification-point': '차단 확인 지점', 'work-access': '점검구', 'energy-isolator': '에너지 차단·잠금 지점' };
@@ -35,13 +36,18 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   accidentLayer.setAttribute('aria-hidden', 'true'); shell.append(accidentLayer);
   let scene, character, shadow, markers, lockLabel, game, destroyed = false, paused = false, accident = false, loadFailed = false;
   let x = geometry.startX, facing = 'left', distanceWalked = 0, safety = {}, accidentResolve;
+  let velocity = 0, lastUpdateTime = null, tapDirection = 0, tapRemaining = 0, lookAhead = 0;
+  let cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, x - geometry.width / 2));
   let lastPosition = '', readyResolve, readyReject, accidentPromise;
   const keys = new Set(), pointers = new Map(), pointerStarts = new Map(), disposers = [], timers = new Set();
   const listen = (target, event, handler) => {
     target.addEventListener(event, handler);
     disposers.push(() => target.removeEventListener(event, handler));
   };
-  const clearInput = () => { keys.clear(); pointers.clear(); pointerStarts.clear(); };
+  const clearInput = () => {
+    keys.clear(); pointers.clear(); pointerStarts.clear();
+    velocity = 0; tapRemaining = 0; lastUpdateTime = null;
+  };
   const available = () => !destroyed && !paused && !accident && !document.hidden;
   const nearest = () => Object.entries(geometry.targets).map(([id, point]) => ({ id, distance: Math.abs(point.x - x) }))
     .sort((a, b) => a.distance - b.distance)[0];
@@ -74,9 +80,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   for (const [element, direction] of [[left, -1], [right, 1]]) {
     const step = () => {
       if (!available()) return;
-      clearInput(); const nextX = geometry.clampX(x + direction * 60);
-      distanceWalked += Math.abs(nextX - x); x = nextX; facing = direction > 0 ? 'right' : 'left';
-      paintCharacter(); publish(true);
+      clearInput(); tapDirection = direction; tapRemaining = .24;
     };
     listen(element, 'pointerdown', (event) => {
       if (!available()) return;
@@ -96,8 +100,10 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   }
   const paintCharacter = (moving = false) => {
     if (!character) return;
-    const walkingFrames = assets.worker.frames.length > 4 ? [1, 2, 3, 4, 5, 2] : [1, 2, 3, 2];
-    const frameIndex = moving && !reducedMotion ? walkingFrames[Math.floor(distanceWalked / (geometry.strideLength / walkingFrames.length)) % walkingFrames.length] : 0;
+    if (!moving) distanceWalked = 0;
+    // shortcut: these five poses lack continuous planted-foot transitions; replace the sheet before certifying foot slip.
+    const walkingFrames = [1, 2, 3, 4, 5];
+    const frameIndex = moving ? walkingFrames[Math.floor(distanceWalked / (geometry.strideLength / walkingFrames.length)) % walkingFrames.length] : 0;
     const frame = assets.worker.frames[frameIndex];
     const flipped = facing !== (assets.worker.facing || 'right');
     character.setFrame(String(frameIndex)).setFlipX(flipped)
@@ -105,7 +111,12 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
       .setOrigin((flipped ? frame.width - frame.footX : frame.footX) / frame.width, frame.footY / frame.height)
       .setPosition(x, geometry.floorY);
     shadow.setPosition(x, geometry.floorY + 2);
-    scene.cameras.main.setScroll(Math.max(0, Math.min(geometry.worldWidth - geometry.width, x - geometry.width * 0.5)), 0);
+  };
+  const paintCamera = (seconds = 0) => {
+    if (!scene) return;
+    if (Math.abs(velocity) > .1) lookAhead += (Math.sign(velocity) * geometry.cameraLookAhead - lookAhead) * (1 - Math.exp(-6 * seconds));
+    cameraX = followCamera(cameraX, x, lookAhead, seconds, geometry, reducedMotion);
+    scene.cameras.main.setScroll(cameraX, 0);
   };
   const paintSafety = () => {
     if (!markers) return;
@@ -137,12 +148,19 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   const controller = {
     setPaused(value) { paused = Boolean(value); clearInput(); paintCharacter(); publish(); },
     setReducedMotion(value) { reducedMotion = Boolean(value); if (reducedMotion) scene?.cameras.main.resetFX(); paintCharacter(); },
-    snapshot: () => ({ x, facing }),
+    snapshot: () => ({ x, facing, cameraX, lookAhead }),
     restore(position) {
       clearInput(); x = geometry.clampX(Number.isFinite(position.x) ? position.x : geometry.startX);
-      facing = position.facing === 'right' ? 'right' : 'left'; distanceWalked = 0; paintCharacter(); publish(true);
+      facing = position.facing === 'right' ? 'right' : 'left'; distanceWalked = 0;
+      lookAhead = Number.isFinite(position.lookAhead) ? position.lookAhead : 0;
+      cameraX = Number.isFinite(position.cameraX) ? Math.max(0, Math.min(geometry.worldWidth - geometry.width, position.cameraX)) : Math.max(0, Math.min(geometry.worldWidth - geometry.width, x - geometry.width / 2));
+      paintCharacter(); paintCamera(); publish(true);
     },
-    reset() { clearAccident(); paused = false; safety = {}; distanceWalked = 0; x = geometry.startX; facing = 'left'; paintSafety(); paintCharacter(); publish(true); },
+    reset() {
+      clearAccident(); paused = false; safety = {}; distanceWalked = 0; x = geometry.startX; facing = 'left'; lookAhead = 0;
+      cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, x - geometry.width / 2));
+      paintSafety(); paintCharacter(); paintCamera(); publish(true);
+    },
     updateSafety(value) { safety = { ...value }; paintSafety(); },
     playAccident() {
       if (destroyed) return Promise.resolve();
@@ -202,16 +220,22 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
         this.cameras.main.setBounds(0, 0, geometry.worldWidth, geometry.height);
         game.canvas.tabIndex = 0; game.canvas.setAttribute('aria-label', '컨베이어 현장. 방향키 또는 A D로 이동, E로 가까운 대상 조사');
         listen(game.canvas, 'pointerdown', () => game.canvas.focus({ preventScroll: true }));
-        paintSafety(); paintCharacter(); publish(true); readyResolve(controller);
+        paintSafety(); paintCharacter(); paintCamera(); publish(true); readyResolve(controller);
       },
-      update(_time, delta) {
-        if (!available()) return;
+      update(time, delta) {
+        if (!available()) { lastUpdateTime = null; return; }
+        const seconds = Math.min(lastUpdateTime === null ? delta : time - lastUpdateTime, 100) / 1000;
+        lastUpdateTime = time;
         const leftHeld = keys.has('ArrowLeft') || keys.has('KeyA') || [...pointers.values()].includes(-1);
         const rightHeld = keys.has('ArrowRight') || keys.has('KeyD') || [...pointers.values()].includes(1);
-        const direction = Number(rightHeld) - Number(leftHeld);
-        const nextX = geometry.clampX(x + direction * geometry.walkingSpeed * Math.min(delta, 50) / 1000);
-        const moved = Math.abs(nextX - x); if (direction) facing = direction > 0 ? 'right' : 'left';
-        x = nextX; distanceWalked += moved; paintCharacter(moved > 0); publish();
+        if (leftHeld || rightHeld) tapRemaining = 0;
+        const direction = Number(rightHeld) - Number(leftHeld) || (tapRemaining > 0 ? tapDirection : 0);
+        tapRemaining = Math.max(0, tapRemaining - seconds);
+        const next = advanceMovement(x, velocity, direction, seconds, geometry);
+        const moved = Math.abs(next.x - x);
+        if (Math.abs(next.velocity) > .1) facing = next.velocity > 0 ? 'right' : 'left';
+        x = next.x; velocity = next.velocity; distanceWalked += moved;
+        paintCharacter(moved > .01); paintCamera(seconds); publish();
       },
     },
   });
