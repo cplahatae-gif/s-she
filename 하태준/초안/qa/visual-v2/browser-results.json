@@ -1,0 +1,14 @@
+{
+  "choices": 24,
+  "rewinds": 4,
+  "stageRecords": [
+    "stage-1.json",
+    "stage-2.json",
+    "stage-3.json",
+    "stage-4.json",
+    "stage-5.json",
+    "stage-6.json"
+  ],
+  "density": "### Result\n[{\"name\":\"mobile\",\"stage\":{\"x\":1,\"y\":385.796875,\"width\":388,\"height\":218.25},\"metrics\":{\"density\":3,\"cssScale\":0.21291866028708134,\"photo\":{\"x\":17,\"y\":162.84375,\"width\":356,\"height\":590.15625,\"top\":162.84375,\"right\":373,\"bottom\":753,\"left\":17},\"layer\":{\"x\":1,\"y\":146.84375,\"width\":388,\"height\":696.15625,\"top\":146.84375,\"right\":389,\"bottom\":843,\"left\":1},\"header\":{\"x\":0,\"y\":0,\"width\":390,\"height\":145.84375,\"top\":0,\"right\":390,\"bottom\":145.84375,\"left\":0},\"caption\":{\"x\":17,\"y\":765,\"width\":356,\"height\":62,\"top\":765,\"right\":373,\"bottom\":827,\"left\":17},\"overflow\":false},\"errors\":[],\"counters\":\"선택 1 되감기 0\"},{\"name\":\"desktop-2x\",\"stage\":{\"x\":845.6015625,\"y\":507.6484375,\"width\":868.796875,\"height\":488.6953125},\"metrics\":{\"density\":2,\"cssScale\":1,\"photo\":{\"x\":444,\"y\":250.5,\"width\":1672,\"height\":941,\"top\":250.5,\"right\":2116,\"bottom\":1191.5,\"left\":444},\"layer\":{\"x\":1,\"y\":65,\"width\":2558,\"height\":1374,\"top\":65,\"right\":2559,\"bottom\":1439,\"left\":1},\"header\":{\"x\":0,\"y\":0,\"width\":2560,\"height\":64,\"top\":0,\"right\":2560,\"bottom\":64,\"left\":0},\"caption\":{\"x\":17,\"y\":1373,\"width\":2526,\"height\":50,\"top\":1373,\"right\":2543,\"bottom\":1423,\"left\":17},\"overflow\":false},\"errors\":[],\"counters\":\"선택 1 되감기 0\"}]",
+  "recovery": "### Result\n{\"failed\":\"선택 1 되감기 0\",\"resumed\":\"선택 1 되감기 0\",\"returned\":0,\"beforeTheme\":\"선택 1 되감기 0\",\"afterTheme\":\"선택 1 되감기 0\",\"advance\":\"1\",\"compareRestored\":true,\"errors\":[]}"
+}
