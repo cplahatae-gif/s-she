@@ -1,3 +1,4 @@
+import { choiceView } from './choice-focus.mjs';
 import { buildLayout } from './layout.mjs';
 import { createMotion, clearMotion, queueTap, advanceMotion, advanceTo, advanceCamera } from './motion.mjs';
 import { buildActionPlan, safetyVisual, actorConsequence } from './action-plan.mjs';
@@ -12,6 +13,9 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   const actionResponse = await fetch(assetUrl('action-assets.json'));
   if (!actionResponse.ok) throw new Error('행동 이미지 정보를 읽을 수 없습니다.');
   const actionAssets = await actionResponse.json();
+  const frontResponse = await fetch(assetUrl('worker-front-v1.json'));
+  if (!frontResponse.ok) throw new Error('정면 대기 자세 정보를 읽을 수 없습니다.');
+  const front = await frontResponse.json();
   const geometry = buildLayout(assets);
   const walk = assets.worker.walk || assets.worker;
   const idle = assets.worker.idle || { file: assets.worker.file, frame: assets.worker.frames[0] };
@@ -52,6 +56,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   const actorMotion = createMotion(geometry.targets.control.x + 300, -1);
   let actorPhase = 'hidden', actorAction = '', actorClock = 0, actorMode = '', actorOwner = '';
   let objectiveVisible = false, objectiveOutline = '', objectiveArrow = 'hidden';
+  let choiceFocus, choicePresentation, choiceClock = 0;
   let lastPosition = '', readyResolve, readyReject;
   const keys = new Map(), pointers = new Map(), disposers = [], timers = new Set();
   const listen = (target, event, handler) => {
@@ -59,7 +64,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     disposers.push(() => target.removeEventListener(event, handler));
   };
   const clearInput = () => { keys.clear(); pointers.clear(); clearMotion(motion); };
-  const available = () => !destroyed && !paused && !accident && !action && !document.hidden;
+  const available = () => !destroyed && !paused && !accident && !action && !choiceFocus && !document.hidden;
   const nearest = () => Object.entries(geometry.targets).map(([id, point]) => ({ id, distance: Math.abs(point.x - motion.x) })).sort((a, b) => a.distance - b.distance)[0];
   const publish = (force = false) => {
     if (destroyed) return;
@@ -71,10 +76,10 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     inspect.disabled = !available() || target.distance > geometry.interactionRadius;
     inspect.textContent = target.distance <= geometry.interactionRadius ? `${names[target.id]} 조사 [E]` : '대상 가까이 이동하세요';
     left.disabled = right.disabled = !available();
-    const next = `${Math.round(motion.x)}:${target.id}:${Math.round(target.distance)}:${Math.round(motion.velocity)}:${motion.facing}:${motion.frame}:${Math.round(cameraX)}:${visualAction}:${visualPose}:${actionPhase}:${visual.beltRunning}:${visual.lock}:${visual.tag}:${cameraZoom.toFixed(2)}:${actorPhase}:${Math.round(actorMotion.x)}:${actorAction}:${objectiveVisible}:${objectiveOutline}:${objectiveArrow}:${actorMode}:${visual.ownerReleased}:${visual.inspectionStatus}:${visual.isolated}:${visual.scopeBlocked}`;
+    const next = `${Math.round(motion.x)}:${target.id}:${Math.round(target.distance)}:${Math.round(motion.velocity)}:${motion.facing}:${motion.frame}:${Math.round(cameraX)}:${visualAction}:${visualPose}:${actionPhase}:${visual.beltRunning}:${visual.lock}:${visual.tag}:${cameraZoom.toFixed(2)}:${actorPhase}:${Math.round(actorMotion.x)}:${actorAction}:${objectiveVisible}:${objectiveOutline}:${objectiveArrow}:${actorMode}:${visual.ownerReleased}:${visual.inspectionStatus}:${visual.isolated}:${visual.scopeBlocked}:${Boolean(choiceFocus)}:${choicePresentation?.bodyScale.toFixed(3)}`;
     if (force || next !== lastPosition) {
       lastPosition = next;
-      onPosition({ x: motion.x, nearestTargetId: target.id, distance: target.distance, inRange: target.distance <= geometry.interactionRadius, objectiveDirection, objectiveDistance, velocity: motion.velocity, facing: motion.facing > 0 ? 'right' : 'left', frame: motion.frame < 0 ? 'idle' : motion.frame, cameraX, floorY: geometry.floorY, visualAction, pose: visualPose || (motion.frame < 0 ? 'idle' : 'walk'), beltRunning: visual.beltRunning, lockVisible: visual.lock, tagVisible: visual.tag, cameraZoom, actionPhase, visualMessage, actorPhase, actorX: actorMotion.x, actorAction, actorMode, actorOwner, ownerReleased: Boolean(visual.ownerReleased), inspectionStatus: visual.inspectionStatus || '', isolationOn: !visual.isolated, scopeBlocked: Boolean(visual.scopeBlocked), riskExample: Boolean(visual.riskExample), objectiveVisible, objectiveOutline, objectiveArrow });
+      onPosition({ x: motion.x, nearestTargetId: target.id, distance: target.distance, inRange: target.distance <= geometry.interactionRadius, objectiveDirection, objectiveDistance, velocity: motion.velocity, facing: motion.facing > 0 ? 'right' : 'left', frame: motion.frame < 0 ? 'idle' : motion.frame, cameraX, floorY: geometry.floorY, visualAction, pose: choiceFocus ? 'waiting' : visualPose || (motion.frame < 0 ? 'idle' : 'walk'), choiceFocused: Boolean(choiceFocus), displayFacing: choiceFocus ? 'front' : motion.facing > 0 ? 'right' : 'left', choiceZoom: choiceFocus ? cameraZoom : 1, choiceScale: choicePresentation?.bodyScale || 1, frontRenderedHeight: choiceFocus ? choicePresentation.renderedHeight : 0, waitingMotion: choiceFocus ? choicePresentation.waitingMotion : 'none', beltRunning: visual.beltRunning, lockVisible: visual.lock, tagVisible: visual.tag, cameraZoom, actionPhase, visualMessage, actorPhase, actorX: actorMotion.x, actorAction, actorMode, actorOwner, ownerReleased: Boolean(visual.ownerReleased), inspectionStatus: visual.inspectionStatus || '', isolationOn: !visual.isolated, scopeBlocked: Boolean(visual.scopeBlocked), riskExample: Boolean(visual.riskExample), objectiveVisible, objectiveOutline, objectiveArrow });
     }
   };
   const inspectNearest = () => {
@@ -142,20 +147,20 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
   const paintCharacter = () => {
     if (!character) return;
     const displayPose = visualPose === 'tryout' ? 'press' : visualPose;
-    const pose = poseFrames.get(displayPose), moving = motion.frame >= 0 && !pose;
-    const frame = pose || (moving ? walkFrames[motion.frame] : idle.frame);
+    const focused = Boolean(choiceFocus), pose = focused ? undefined : poseFrames.get(displayPose), moving = !focused && motion.frame >= 0 && !pose;
+    const frame = focused ? front : pose || (moving ? walkFrames[motion.frame] : idle.frame);
     const facing = pose ? (actionAssets.actions.facing || 'right') : (walk.facing || 'right');
-    const flipped = (motion.facing > 0 ? 'right' : 'left') !== facing;
+    const flipped = !focused && (motion.facing > 0 ? 'right' : 'left') !== facing;
     const bodyX = frame.anchorX ?? frame.bodyX ?? frame.width / 2;
     const groundY = frame.footY ?? frame.groundY;
     // Crouching retains standing scale. The worker bends instead of being stretched.
-    const scale = pose ? actionScale : geometry.workerHeight / (frame.bodyHeight ?? frame.bbox?.height ?? walk.standingHeight);
-    character.setTexture(pose ? 'site-worker-actions' : moving ? 'site-worker-walk' : 'site-worker-idle', pose ? displayPose : moving ? String(motion.frame) : 'idle')
+    const scale = focused ? geometry.workerHeight / front.bodyHeight * choicePresentation.bodyScale : pose ? actionScale : geometry.workerHeight / (frame.bodyHeight ?? frame.bbox?.height ?? walk.standingHeight);
+    character.setTexture(focused ? 'site-worker-front' : pose ? 'site-worker-actions' : moving ? 'site-worker-walk' : 'site-worker-idle', focused ? undefined : pose ? displayPose : moving ? String(motion.frame) : 'idle')
       .setFlipX(flipped).setScale(scale).setOrigin((flipped ? frame.width - bodyX : bodyX) / frame.width, groundY / frame.height)
-      .setPosition(motion.x, geometry.floorY).setDepth(20);
+      .setPosition(motion.x, geometry.floorY).setDepth(focused ? 31 : 20);
     actionHand = pose ? { x: motion.x + handOffset(frame).x * (flipped ? -1 : 1), y: geometry.floorY + handOffset(frame).y } : undefined;
-    shadow.setPosition(motion.x, geometry.floorY + 2);
-    scene.cameras.main.setZoom(cameraZoom).setScroll(cameraX, Math.max(0, geometry.height - geometry.height / cameraZoom));
+    shadow.setPosition(motion.x, geometry.floorY + 2).setScale(focused ? choicePresentation.bodyScale : 1, 1);
+    scene.cameras.main.setZoom(cameraZoom).setScroll(cameraX, focused ? choicePresentation.scrollY : Math.max(0, geometry.height - geometry.height / cameraZoom));
     // Scroll-factor-zero labels still inherit camera zoom; compensate around its center.
     for (const [label, y] of [[radioText, 114], [riskBadge, 155]]) {
       label?.setPosition(geometry.width / 2 + (24 - geometry.width / 2) / cameraZoom, geometry.height / 2 + (y - geometry.height / 2) / cameraZoom).setScale(1 / cameraZoom);
@@ -179,7 +184,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     objectiveMarker.clear(); objectiveLabel.setVisible(false);
     objectiveVisible = false; objectiveOutline = ''; objectiveArrow = 'hidden';
     const rect = objectiveRect();
-    if (!rect || action || accident || paused || document.hidden) return;
+    if (!rect || action || accident || paused || choiceFocus || document.hidden) return;
     const view = scene.cameras.main.worldView, left = view.x, right = view.x + view.width;
     const centerX = rect.x + rect.width / 2;
     const label = { control: '다음 장소 · 조작반', 'energy-isolator': '다음 장소 · MCC B/C-01', 'work-access': '다음 장소 · 컨베이어 점검구' }[objective];
@@ -311,6 +316,30 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     }
   };
 
+  const advanceChoiceFocus = (seconds) => {
+    if (!choiceFocus || (document.hidden && seconds > 0)) return;
+    choiceClock += seconds * 1000;
+    choicePresentation = choiceView(choiceFocus, geometry, choiceClock, reducedMotion);
+    cameraX = choicePresentation.cameraX; cameraZoom = choicePresentation.zoom;
+    paintCharacter(); publish();
+  };
+  const setChoiceFocus = (value) => {
+    if (destroyed || Boolean(value) === Boolean(choiceFocus)) return;
+    if (value) {
+      if (action || accident) return;
+      clearInput();
+      choiceFocus = { x: motion.x, cameraX, cameraZoom, scrollY: scene.cameras.main.scrollY };
+      choiceClock = 0;
+      // The extra right extent lies behind the quiz panel; physics/world bounds stay unchanged.
+      scene.cameras.main.setBounds(0, 0, geometry.worldWidth + geometry.width, geometry.height);
+      advanceChoiceFocus(0);
+    } else {
+      cameraX = choiceFocus.cameraX; cameraZoom = choiceFocus.cameraZoom;
+      choiceFocus = undefined; choicePresentation = undefined; choiceClock = 0;
+      scene.cameras.main.setBounds(0, 0, geometry.worldWidth, geometry.height);
+      paintCharacter(); publish(true);
+    }
+  };
   const clearVisual = () => {
     visual = safetyVisual(safety); visualPose = ''; visualAction = ''; visualMessage = ''; actionPhase = ''; cameraZoom = 1;
     cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, cameraX));
@@ -389,27 +418,28 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     accidentResolve?.(); accidentResolve = undefined; accidentPromise = undefined; clearInput(); publish();
   };
   const controller = {
+    setChoiceFocus,
     setPaused(value) { paused = Boolean(value); clearInput(); paintCharacter(); paintObjective(); publish(true); },
-    setReducedMotion(value) { reducedMotion = Boolean(value); if (reducedMotion) { cameraZoom = 1; cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, cameraX)); scene?.cameras.main.resetFX(); } paintCharacter(); publish(true); },
+    setReducedMotion(value) { reducedMotion = Boolean(value); if (choiceFocus) { scene?.cameras.main.resetFX(); advanceChoiceFocus(0); publish(true); return; } if (reducedMotion) { cameraZoom = 1; cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, cameraX)); scene?.cameras.main.resetFX(); } paintCharacter(); publish(true); },
     setObjective(targetId) { objective = targetId; paintObjective(); publish(true); },
-    snapshot: () => ({ x: motion.x, facing: motion.facing > 0 ? 'right' : 'left', cameraX }),
+    snapshot: () => ({ x: motion.x, facing: motion.facing > 0 ? 'right' : 'left', cameraX: choiceFocus ? choiceFocus.cameraX : cameraX }),
     restore(position) {
-      actionGeneration++; cancelAction(); clearAccident(); clearInput();
+      setChoiceFocus(false); actionGeneration++; cancelAction(); clearAccident(); clearInput();
       motion.x = geometry.clampX(Number.isFinite(position.x) ? position.x : geometry.startX);
       motion.facing = position.facing === 'right' ? 1 : -1; motion.distance = 0;
       if (Number.isFinite(position.cameraX)) cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, position.cameraX));
       clearVisual(); publish(true);
     },
     reset() {
-      actionGeneration++; cancelAction(); clearAccident(); paused = false; safety = {}; objective = 'control';
+      setChoiceFocus(false); actionGeneration++; cancelAction(); clearAccident(); paused = false; safety = {}; objective = 'control';
       motion.distance = 0; motion.x = geometry.startX; motion.facing = -1;
       cameraX = Math.max(0, Math.min(geometry.worldWidth - geometry.width, motion.x - geometry.width / 2));
       clearVisual(); publish(true);
     },
-    updateSafety(value) { safety = { ...value }; if (!action && !accident) clearVisual(); },
+    updateSafety(value) { safety = { ...value }; if (!action && !accident && !choiceFocus) clearVisual(); },
     playAction(outcome, { beforeSafety } = {}) {
       if (destroyed) return Promise.resolve();
-      cancelAction(); clearAccident(); clearInput(); resetActor();
+      setChoiceFocus(false); cancelAction(); clearAccident(); clearInput(); resetActor();
       visual = { ...safetyVisual(beforeSafety || safety) }; visualAction = outcome.optionId; visualMessage = '선택한 행동을 현장에서 수행합니다.';
       actionPhase = 'approach'; visualPose = ''; cameraZoom = 1;
       const plan = buildActionPlan(outcome), frame = poseFrames.get(plan.beats[0].pose === 'tryout' ? 'press' : plan.beats[0].pose), contact = beatContact(plan.target, plan, plan.beats[0].control);
@@ -421,7 +451,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     },
     playAccident(outcome) {
       if (destroyed) return Promise.resolve();
-      if (accidentPromise) return accidentPromise;
+      setChoiceFocus(false); if (accidentPromise) return accidentPromise;
       if (action) finishAction(); accident = true; clearInput(); visualPose = 'recoil'; actionPhase = 'consequence';
       if (outcome) visualAction = outcome.optionId;
       accidentLayer.style.background = 'linear-gradient(90deg,rgba(93,18,8,.2),transparent 45%,rgba(93,18,8,.12))'; accidentLayer.style.opacity = '1';
@@ -435,7 +465,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
     clearAccident,
     destroy() {
       if (destroyed) return;
-      destroyed = true; actionGeneration++; cancelAction(); clearAccident(); clearInput(); disposers.forEach((dispose) => dispose());
+      setChoiceFocus(false); destroyed = true; actionGeneration++; cancelAction(); clearAccident(); clearInput(); disposers.forEach((dispose) => dispose());
       game.destroy(true); shell.remove();
     },
   };
@@ -452,6 +482,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
         this.load.image('site-background', assetUrl(assets.background.file));
         this.load.image('site-worker-walk', assetUrl(walk.file));
         this.load.image('site-worker-idle', assetUrl(idle.file));
+        this.load.image('site-worker-front', assetUrl(front.file));
         this.load.image('site-worker-actions', assetUrl(actionAssets.actions.file));
         this.load.image('site-equipment', assetUrl(actionAssets.equipment.file));
         this.load.image('site-debris', assetUrl(actionAssets.debris.file));
@@ -516,6 +547,7 @@ export async function mountStage(root, { onInspect, onPosition = () => {}, reduc
         if (destroyed) return;
         const seconds = Math.min(delta, 50) / 1000;
         paintBelt(seconds);
+        if (choiceFocus) { advanceChoiceFocus(seconds); return; }
         if (action) { advanceAction(seconds); return; }
         if (!available()) return;
         if (visualPose) { visualPose = ''; visualAction = ''; actionPhase = ''; actionText.setVisible(false); cameraZoom = 1; }

@@ -12,7 +12,7 @@ const prefix = '/권기봉/초안/';
 const publicFiles = new Map([
   [prefix, 'index.html'],
   [prefix + 'index.html', 'index.html'],
-  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/choice-feedback.mjs', 'src/learning.mjs', 'src/layout.mjs', 'src/motion.mjs', 'src/action-plan.mjs']
+  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/choice-feedback.mjs', 'src/choice-focus.mjs', 'src/learning.mjs', 'src/layout.mjs', 'src/motion.mjs', 'src/action-plan.mjs']
     .map((name) => [prefix + name, name]),
   ['/vendor/phaser.min.js', '../../vendor/phaser.min.js'],
   ['/vendor/PHASER-LICENSE.txt', '../../vendor/PHASER-LICENSE.txt'],
