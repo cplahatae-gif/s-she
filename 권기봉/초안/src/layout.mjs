@@ -3,8 +3,8 @@ export const layout = Object.freeze({
   height: 720,
   minimumWorldWidth: 3200,
   floorRatio: 0.86,
-  walkingSpeed: 270,
-  strideLength: 180,
+  walkingSpeed: 200,
+  strideLength: 260,
   interactionRadius: 180,
   workerHeightRatio: 0.43,
   edgeMargin: 76,
@@ -23,15 +23,15 @@ export function buildLayout(assets) {
   const worldWidth = background.width * backgroundScale;
   const backgroundHeight = background.height * backgroundScale;
   const backgroundY = floorY - walklineV * backgroundHeight;
-  const targets = Object.fromEntries(Object.entries(background.targets).map(([id, point]) => [id, {
+  const targetPoints = { ...background.targets, control: { u: 0.42, v: 0.60 }, 'energy-isolator': { u: 0.855, v: 0.57 }, 'work-access': { u: 0.16, v: 0.65 } };
+  const targets = Object.fromEntries(Object.entries(targetPoints).map(([id, point]) => [id, {
     x: point.u * worldWidth,
     y: backgroundY + point.v * backgroundHeight,
   }]));
   const minX = layout.edgeMargin;
   const maxX = worldWidth - layout.edgeMargin;
   const clampX = (x) => Math.max(minX, Math.min(maxX, x));
-  const accessX = targets['work-access'].x;
-  const startX = clampX(Number.isFinite(background.startU) ? background.startU * worldWidth : accessX + layout.startOffset);
+  const startX = clampX(targets.control.x);
   const workerHeight = backgroundHeight * layout.workerHeightRatio;
   return { ...layout, worldWidth, backgroundScale, backgroundY, floorY, workerHeight, targets, minX, maxX, startX, clampX };
 }

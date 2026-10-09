@@ -3,16 +3,17 @@ import { once } from 'node:events';
 import { request } from 'node:http';
 import { test } from 'node:test';
 import { makeServer } from '../server.mjs';
-import { createRun, applyAction, serializeRun, judgeEntry } from '../src/scenario.mjs';
+import { STEPS, createRun, chooseOption, acknowledgeOutcome, rewind, serializeRun, judgeEntry } from '../src/scenario.mjs';
 import { fixedExplanation, getExplanation, sentences } from '../src/feedback.mjs';
 
 const prefix = '/권기봉/초안/';
 const api = encodeURI(prefix + 'api/feedback');
-const allSteps = ['isolate-energy', 'attach-personal-lock', 'attach-tag', 'clear-residual-energy', 'verify-isolation'];
-
-function runWith(steps) {
+function runThrough(count = STEPS.length) {
   const run = createRun();
-  for (const step of steps) applyAction(run, step);
+  for (const step of STEPS.slice(0, count)) {
+    chooseOption(run, step.options.find(({ correct }) => correct).id);
+    acknowledgeOutcome(run);
+  }
   return run;
 }
 
@@ -31,9 +32,11 @@ const post = (url, body) => fetch(url + api, {
 
 test('explicit public modules are served with JavaScript MIME', async () => {
   await withServer(async (url) => {
-    const response = await fetch(url + encodeURI(prefix + 'src/scenario.mjs'));
-    assert.equal(response.status, 200);
-    assert.match(response.headers.get('content-type'), /^text\/javascript/u);
+    for (const module of ['scenario.mjs', 'feedback.mjs', 'layout.mjs', 'motion.mjs']) {
+      const response = await fetch(url + encodeURI(prefix + 'src/' + module));
+      assert.equal(response.status, 200, module);
+      assert.match(response.headers.get('content-type'), /^text\/javascript/u);
+    }
   });
 });
 
@@ -42,6 +45,16 @@ test('explicit index link is served as HTML', async () => {
     const response = await fetch(url + encodeURI(prefix + 'index.html'));
     assert.equal(response.status, 200);
     assert.match(response.headers.get('content-type'), /^text\/html/u);
+  });
+});
+
+test('selected briefing portrait is served from the exact shared asset mapping', async () => {
+  await withServer(async (url) => {
+    const response = await fetch(url + '/assets/images/character-candidates/candidate-02-40s.png');
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('content-type'), 'image/png');
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    assert.deepEqual([...bytes.slice(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
   });
 });
 
@@ -66,45 +79,87 @@ test('raw traversal and malformed URL encodings are rejected', async () => {
   });
 });
 
-for (const [name, steps, kind] of [
-  ['unsafe energy', [], 'wrong'],
-  ['visible but ineffective lock', ['isolate-energy', 'attach-wrong-lock'], 'wrong'],
-  ['missing tag', ['isolate-energy', 'attach-personal-lock', 'clear-residual-energy', 'verify-isolation'], 'incomplete'],
-  ['complete safety measures', allSteps, 'success'],
-]) {
-  test(`server recalculates ${kind} from ${name} with no key`, async () => {
-    const run = runWith(steps);
-    const expected = fixedExplanation(judgeEntry(runWith(steps)));
+for (let count = 0; count <= 6; count += 1) {
+  test(`server recalculates checkpoint ${count} with no key`, async () => {
+    const run = runThrough(count);
+    const verdict = judgeEntry(run);
+    assert.equal(verdict.kind, count === 6 ? 'success' : 'wrong');
+    const expected = fixedExplanation(verdict);
+    const before = serializeRun(run);
     await withServer(async (url) => {
-      const response = await post(url, serializeRun(run));
+      const response = await post(url, before);
       assert.equal(response.status, 200);
-      const explanation = await response.json();
-      assert.deepEqual(explanation, expected);
-      assert.equal(sentences(explanation.text).length, 3);
+      assert.deepEqual(await response.json(), expected);
+      assert.equal(sentences(expected.text).length, 3);
     }, { apiKey: '', providerFetch: () => { throw new Error('Provider must not be called without a key'); } });
+    assert.deepEqual(serializeRun(run), before);
   });
 }
 
-test('completed successful state is recalculated as success rather than client completion flag', async () => {
-  const run = runWith(allSteps);
+test('pending choices and rewound accident checkpoints use validated state', async () => {
+  const correct = createRun();
+  chooseOption(correct, STEPS[0].options.find(({ correct }) => correct).id);
+  const accidentStep = STEPS.findIndex(({ options }) => options.some(({ effect }) => effect === 'accident'));
+  assert.ok(accidentStep >= 0);
+  const wrong = runThrough(accidentStep);
+  chooseOption(wrong, STEPS[accidentStep].options.find(({ effect }) => effect === 'accident').id);
+  assert.equal(wrong.pending.kind, 'wrong');
+  await withServer(async (url) => {
+    for (const run of [correct, wrong]) {
+      const before = serializeRun(run);
+      const response = await post(url, before);
+      assert.equal(response.status, 200);
+      assert.deepEqual(await response.json(), fixedExplanation(judgeEntry(run)));
+      assert.deepEqual(serializeRun(run), before);
+    }
+    rewind(wrong);
+    assert.equal(wrong.pending, null);
+    assert.equal(wrong.stepIndex, accidentStep);
+    assert.equal((await post(url, serializeRun(wrong))).status, 200);
+  });
+});
+
+test('completed sixth checkpoint is success with the full safety explanation', async () => {
+  const run = runThrough();
+  assert.equal(run.completed, true);
+  assert.equal(run.stepIndex, 6);
   const expected = fixedExplanation(judgeEntry(run));
+  assert.match(expected.text, /정지.*운전자.*MCC/u);
+  assert.match(expected.text, /본인 자물쇠·표지.*잔류 에너지.*시동 시험.*이물질/u);
   await withServer(async (url) => {
     assert.deepEqual(await (await post(url, serializeRun(run))).json(), expected);
   });
 });
 
-test('unknown fields, forged verdicts, ids, types and inconsistent states are rejected', async () => {
+test('unknown fields, forged verdicts, ids, types and inconsistent quiz states are rejected', async () => {
   const payload = serializeRun(createRun());
+  const done = serializeRun(runThrough());
+  const selected = createRun();
+  chooseOption(selected, STEPS[0].options.find(({ correct }) => correct).id);
+  const pending = serializeRun(selected);
   const invalid = [
     { ...payload, kind: 'success' }, { ...payload, secret: 'unused' },
     { ...payload, observed: ['unknown'] }, { ...payload, observed: ['work-access', 'work-access'] },
-    { ...payload, attempts: '1' }, { ...payload, completed: true },
+    { ...payload, attempts: '1' }, { ...payload, attempts: -1 }, { ...payload, attempts: 1_000_001 },
+    { ...payload, rewinds: 1 }, { ...payload, completed: true },
+    { ...payload, stepIndex: -1 }, { ...payload, stepIndex: 7 }, { ...payload, stepIndex: '0' },
     { ...payload, safety: { ...payload.safety, isolated: 1 } },
     { ...payload, safety: { ...payload.safety, verified: true } },
     { ...payload, safety: { ...payload.safety, extra: false } },
+    { ...payload, safety: { ...done.safety } },
+    { ...pending, pending: { ...pending.pending, kind: 'wrong' } },
+    { ...pending, pending: { ...pending.pending, optionId: 'unknown' } },
+    { ...pending, pending: { ...pending.pending, stepId: STEPS[1].id } },
+    { ...pending, pending: { ...pending.pending, extra: false } },
+    { ...pending, attempts: 0 },
+    { ...done, completed: false }, { ...done, attempts: 0 },
+    { ...done, pending: { ...pending.pending } },
+    { ...done, safety: { ...done.safety, cleaned: false } },
   ];
+  const { stepIndex: omitted, ...legacy } = payload;
+  invalid.push(legacy);
   await withServer(async (url) => {
-    for (const body of invalid) assert.equal((await post(url, body)).status, 400);
+    for (const [index, body] of invalid.entries()) assert.equal((await post(url, body)).status, 400, `invalid payload ${index}`);
   });
 });
 
@@ -136,7 +191,14 @@ test('provider response is parsed across message outputs and preserves immutable
     assert.equal(body.store, false);
     assert.equal(body.model, 'gpt-4.1-mini');
     assert.equal(typeof body.input, 'string');
-    return new Response(JSON.stringify({ output: [{ type: 'reasoning' }, { type: 'message', content: [{ type: 'output_text', text }] }] }), { status: 200 });
+    const input = JSON.parse(body.input);
+    assert.equal(input.firstSentence, parts[0]);
+    assert.equal(input.lastSentence, parts[2]);
+    return new Response(JSON.stringify({ output: [
+      { type: 'reasoning' },
+      { type: 'message', content: [{ type: 'output_text', text: parts[0] }, { type: 'metadata', text: 'ignored' }] },
+      { type: 'message', content: [{ type: 'output_text', text: text.slice(parts[0].length).trim() }] },
+    ] }), { status: 200 });
   }, model: 'gpt-4.1-mini' });
 });
 
@@ -155,7 +217,7 @@ test('provider errors and changed verdict text preserve fixed explanation', asyn
 });
 
 test('client fixed mode is three sentences and does not mutate a successful run', async () => {
-  const run = runWith(allSteps);
+  const run = runThrough();
   judgeEntry(run);
   const before = serializeRun(run);
   const explanation = await getExplanation(run);

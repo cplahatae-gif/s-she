@@ -9,7 +9,7 @@ export function fixedExplanation(result) {
   let text;
   switch (result.kind) {
     case 'success':
-      text = '멈춰 있다는 표시를 믿고 들어가지 않았습니다. 직접 차단하고 본인 자물쇠·표지를 체결한 뒤, 차단을 확인하고 작업에 들어갔습니다. 현실에는 되감기가 없습니다.';
+      text = '설비를 정지하고 운전자에게 알린 뒤 MCC에서 에너지를 차단했습니다. 본인 자물쇠·표지를 체결하고 잔류 에너지를 처리한 뒤 시동 시험으로 차단을 확인하고 이물질을 제거했습니다. 현실에는 되감기가 없습니다.';
       break;
     case 'incomplete':
       text = '아직 필수 조치가 끝나지 않았습니다. 빠진 단계를 완료한 뒤 작업에 들어가세요. 현실에는 되감기가 없습니다.';
@@ -40,7 +40,6 @@ export function validSupplement(text, fixed) {
 export async function getExplanation(run, { signal, enabled = false } = {}) {
   const payload = serializeRun(run);
   const snapshot = runFromPayload(payload);
-  snapshot.completed = false;
   const fixed = fixedExplanation(judgeEntry(snapshot));
   if (signal?.aborted) throw signal.reason ?? new DOMException('요청이 취소되었습니다.', 'AbortError');
   if (!enabled) return fixed;

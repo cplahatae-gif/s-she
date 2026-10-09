@@ -11,11 +11,12 @@ const prefix = '/권기봉/초안/';
 const publicFiles = new Map([
   [prefix, 'index.html'],
   [prefix + 'index.html', 'index.html'],
-  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/layout.mjs']
+  ...['src/styles.css', 'src/app.js', 'src/stage.js', 'src/overview.js', 'src/scenario.mjs', 'src/feedback.mjs', 'src/layout.mjs', 'src/motion.mjs']
     .map((name) => [prefix + name, name]),
   ['/vendor/phaser.min.js', '../../vendor/phaser.min.js'],
   ['/vendor/PHASER-LICENSE.txt', '../../vendor/PHASER-LICENSE.txt'],
   ['/assets/images/overview/factory-overview.png', '../../assets/images/overview/factory-overview.png'],
+  ['/assets/images/character-candidates/candidate-02-40s.png', '../../assets/images/character-candidates/candidate-02-40s.png'],
   ['/assets/images/scenario-scenes/05-safe-cleanup.png', '../../assets/images/scenario-scenes/05-safe-cleanup.png'],
 ]);
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp', '.json': 'application/json; charset=utf-8', '.txt': 'text/plain; charset=utf-8' };
@@ -52,7 +53,6 @@ function readBody(request) {
 }
 
 async function supplement(run, config, signal) {
-  run.completed = false;
   const result = judgeEntry(run);
   const fixed = fixedExplanation(result);
   if (!config.apiKey) return fixed;
