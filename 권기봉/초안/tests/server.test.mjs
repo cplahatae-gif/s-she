@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import { makeServer } from '../server.mjs';
 import { STEPS, createRun, chooseOption, acknowledgeOutcome, rewind, serializeRun, judgeEntry } from '../src/scenario.mjs';
 import { fixedExplanation, getExplanation, sentences } from '../src/feedback.mjs';
+import { buildLearningReport, learningAIChoices } from '../src/learning.mjs';
 
 const prefix = '/권기봉/초안/';
 const api = encodeURI(prefix + 'api/feedback');
@@ -32,7 +33,7 @@ const post = (url, body) => fetch(url + api, {
 
 test('explicit public modules are served with JavaScript MIME', async () => {
   await withServer(async (url) => {
-    for (const module of ['scenario.mjs', 'feedback.mjs', 'layout.mjs', 'motion.mjs']) {
+    for (const module of ['scenario.mjs', 'feedback.mjs', 'learning.mjs', 'layout.mjs', 'motion.mjs', 'action-plan.mjs']) {
       const response = await fetch(url + encodeURI(prefix + 'src/' + module));
       assert.equal(response.status, 200, module);
       assert.match(response.headers.get('content-type'), /^text\/javascript/u);
@@ -250,4 +251,118 @@ test('client ignores a late response after caller cancellation even if transport
     deliver(new Response(JSON.stringify(fixedExplanation(judgeEntry(createRun()))), { status: 200 }));
     await assert.rejects(pending, { name: 'AbortError' });
   } finally { globalThis.fetch = originalFetch; }
+});
+
+function learningRun(wrongByStep = {}) {
+  const run = createRun();
+  const events = [];
+  for (const step of STEPS) {
+    for (const optionId of [...(wrongByStep[step.id] ?? []), step.options.find(({ correct }) => correct).id]) {
+      const outcome = chooseOption(run, optionId);
+      events.push({ optionId });
+      if (outcome.effect === 'accident') rewind(run);
+      else acknowledgeOutcome(run);
+    }
+  }
+  return { run, events };
+}
+const learningApi = encodeURI(prefix + 'api/learning');
+const postLearning = (url, body) => fetch(url + learningApi, {
+  method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+});
+
+test('learning API validates replay and returns full rule report without a key', async () => {
+  const { run, events } = learningRun({ stop: ['stop-emergency-only'], notify: ['notify-enter'], tagout: ['tag-skip'], tryout: ['tryout-no-return'], cleanup: ['cleanup-unlock'] });
+  const fixed = buildLearningReport(run, events);
+  assert.deepEqual(fixed.metrics, { attempts: 11, rewinds: 2, firstPassCorrect: 1, correctedSteps: 5 });
+  await withServer(async (url) => {
+    const response = await postLearning(url, { run: serializeRun(run), events });
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), fixed);
+  }, { apiKey: '', providerFetch: () => { throw new Error('No key must not call provider'); } });
+});
+
+test('learning API rejects noncompletion, forged histories, extra fields and inconsistent counts', async () => {
+  const { run, events } = learningRun({ stop: ['stop-enter-running'] });
+  const payload = serializeRun(run);
+  const invalid = [
+    { run: serializeRun(createRun()), events: [] },
+    { run: payload, events: events.slice(1) },
+    { run: payload, events: [...events, { optionId: 'cleanup-correct' }] },
+    { run: payload, events: [{ optionId: 'unknown' }, ...events] },
+    { run: payload, events, source: 'ai' },
+    { run: { ...payload, rewinds: 0 }, events },
+    { run: payload, events: events.map((event) => ({ ...event, guessedWill: 'high' })) },
+    { run: payload }, null,
+  ];
+  await withServer(async (url) => {
+    for (const body of invalid) assert.equal((await postLearning(url, body)).status, 400);
+  });
+});
+
+test('learning API preserves JSON method and 8 KB request boundary', async () => {
+  await withServer(async (url) => {
+    assert.equal((await fetch(url + learningApi)).status, 405);
+    assert.equal((await fetch(url + learningApi, { method: 'POST', body: '{}' })).status, 415);
+    assert.equal((await fetch(url + learningApi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{' })).status, 400);
+    assert.equal((await fetch(url + learningApi, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: 'x'.repeat(8193) })).status, 413);
+    const chunked = await new Promise((accept, reject) => {
+      const outgoing = request(url + learningApi, { method: 'POST', headers: { 'Content-Type': 'application/json' } }, (response) => {
+        response.resume(); accept(response.statusCode);
+      }).on('error', reject);
+      outgoing.write('x'.repeat(4096)); outgoing.write('x'.repeat(4097)); outgoing.end();
+    });
+    assert.equal(chunked, 413);
+  });
+});
+
+test('learning provider uses strict Responses schema and can prioritize only evidence-grounded approved coaching', async () => {
+  const { run, events } = learningRun({ notify: ['notify-vague'], tagout: ['tag-skip'] });
+  const fixed = buildLearningReport(run, events);
+  const choices = learningAIChoices(fixed);
+  const content = { summary: choices.summaries[1], coachingTips: [choices.tips[1], choices.tips[0]] };
+  await withServer(async (url) => {
+    const response = await postLearning(url, { run: serializeRun(run), events });
+    const report = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(report.source, 'ai');
+    assert.deepEqual(report.coachingTips, content.coachingTips);
+    for (const key of ['metrics', 'strengths', 'weaknesses', 'learningBehavior', 'recommendations', 'events']) assert.deepEqual(report[key], fixed[key]);
+  }, { apiKey: 'test-only', providerFetch: async (endpoint, init) => {
+    assert.equal(endpoint, 'https://api.openai.com/v1/responses');
+    const body = JSON.parse(init.body);
+    assert.equal(body.store, false);
+    assert.equal(body.model, 'gpt-4.1-mini');
+    assert.equal(body.text.format.type, 'json_schema');
+    assert.equal(body.text.format.strict, true);
+    assert.equal(body.text.format.schema.additionalProperties, false);
+    assert.deepEqual(body.text.format.schema.properties.summary.enum, choices.summaries);
+    assert.deepEqual(body.text.format.schema.properties.coachingTips.items.properties.stepId.enum, ['notify', 'tagout']);
+    const input = JSON.parse(body.input);
+    assert.deepEqual(input.metrics, fixed.metrics);
+    assert.ok(!Object.hasOwn(input, 'name'));
+    assert.match(body.instructions, /의지·성격·동기/u);
+    return new Response(JSON.stringify({ status: 'completed', output: [
+      { type: 'reasoning' }, { type: 'message', content: [{ type: 'output_text', text: JSON.stringify(content) }] },
+    ] }));
+  } });
+});
+
+test('learning provider refusal, incomplete, invalid JSON, psychology, altered evidence and timeout fall back to rules', async () => {
+  const { run, events } = learningRun({ stop: ['stop-slower'] });
+  const fixed = buildLearningReport(run, events);
+  const choices = learningAIChoices(fixed);
+  const responseWith = (content, status = 'completed') => new Response(JSON.stringify({ status, output: [{ type: 'message', content }] }));
+  for (const providerFetch of [
+    async () => { throw new DOMException('provider deadline', 'TimeoutError'); },
+    async () => new Response('{}', { status: 503 }),
+    async () => responseWith([{ type: 'refusal', refusal: 'test' }]),
+    async () => responseWith([{ type: 'output_text', text: JSON.stringify({ summary: choices.summaries[0], coachingTips: choices.tips }) }], 'incomplete'),
+    async () => responseWith([{ type: 'output_text', text: '{' }]),
+    async () => responseWith([{ type: 'output_text', text: JSON.stringify({ summary: '학습 의지가 부족합니다.', coachingTips: choices.tips }) }]),
+    async () => responseWith([{ type: 'output_text', text: JSON.stringify({ summary: choices.summaries[0], coachingTips: [{ stepId: 'cleanup', text: choices.tips[0].text }] }) }]),
+    async () => responseWith([{ type: 'output_text', text: JSON.stringify({ summary: choices.summaries[0], coachingTips: choices.tips, metrics: { attempts: 0 } }) }]),
+  ]) {
+    await withServer(async (url) => assert.deepEqual(await (await postLearning(url, { run: serializeRun(run), events })).json(), fixed), { apiKey: 'test-only', providerFetch });
+  }
 });

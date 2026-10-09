@@ -1,4 +1,4 @@
-export const motionConfig = Object.freeze({ speed: 200, acceleration: 1800, braking: 2400, stride: 260, frames: 8 });
+export const motionConfig = Object.freeze({ speed: 200, acceleration: 1200, braking: 2400, stride: 260, frames: 8 });
 
 export function createMotion(x, facing = -1) {
   return { x, velocity: 0, facing, distance: 0, queue: 0, frame: -1 };
@@ -50,8 +50,18 @@ export function advanceMotion(state, input, seconds, bounds, config = motionConf
   return moved;
 }
 
+// Automatic interaction walks use a remaining-distance budget and gentler braking.
+export function advanceTo(state, destination, seconds, bounds, config = motionConfig) {
+  const target = Math.max(bounds.minX, Math.min(bounds.maxX, destination));
+  state.queue = target - state.x;
+  return advanceMotion(state, 0, seconds, bounds, { ...config, braking: 900 });
+}
+
 export function advanceCamera(cameraX, x, velocity, seconds, width, worldWidth) {
-  const target = Math.max(0, Math.min(worldWidth - width, x - width * 0.5 + Math.max(-130, Math.min(130, velocity * 0.65))));
-  const next = cameraX + (target - cameraX) * (1 - Math.exp(-7 * Math.min(0.05, Math.max(0, seconds))));
+  const lead = Math.max(-64, Math.min(64, velocity * 0.32));
+  const offset = x + lead - (cameraX + width * 0.5);
+  const deadzone = 42;
+  const target = Math.max(0, Math.min(worldWidth - width, Math.abs(offset) <= deadzone ? cameraX : cameraX + offset - Math.sign(offset) * deadzone));
+  const next = cameraX + (target - cameraX) * (1 - Math.exp(-5.5 * Math.min(0.05, Math.max(0, seconds))));
   return Math.max(0, Math.min(worldWidth - width, next));
 }
